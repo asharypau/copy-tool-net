@@ -17,14 +17,14 @@ void Session::start()
     {
         try
         {
-            read();
+            read_file();
         }
         catch (const DisconnectException& ex)
         {
             Logger::info(ex.what());
             break;
         }
-        catch (const std::exception& ex)
+        catch (const std::runtime_error& ex)
         {
             Logger::error("Error occurred: " + std::string(ex.what()) + " during processing client: " + std::to_string(_client_id));
             break;
@@ -32,14 +32,14 @@ void Session::start()
     }
 }
 
-void Session::read()
+void Session::read_file()
 {
-    size_t file_size = read_file_size();
+    size_t file_size = read_size();
     FileHandler file_handler("D:/Education/CppMentoring/files");
 
     while (file_size > 0)
     {
-        size_t batch_size = read_batch_size();
+        size_t batch_size = read_size();
         std::vector<char> batch = read_batch(batch_size);
 
         file_handler.write(batch.data(), batch_size);
@@ -48,48 +48,18 @@ void Session::read()
     }
 }
 
-size_t Session::read_file_size()
+size_t Session::read_size()
 {
-    boost::system::error_code error;
-    size_t file_size = 0;
-    size_t read_bytes = boost::asio::read(_socket, boost::asio::buffer(&file_size, sizeof(file_size)), error);
+    size_t size = 0;
+    read(&size, sizeof(size));
 
-    validate_read(error, read_bytes, sizeof(file_size));
-
-    return file_size;
-}
-
-size_t Session::read_batch_size()
-{
-    boost::system::error_code error;
-    size_t batch_size = 0;
-    size_t read_bytes = boost::asio::read(_socket, boost::asio::buffer(&batch_size, sizeof(batch_size)), error);
-
-    validate_read(error, read_bytes, sizeof(batch_size));
-
-    return batch_size;
+    return size;
 }
 
 std::vector<char> Session::read_batch(size_t batch_size)
 {
-    boost::system::error_code error;
     std::vector<char> buffer(batch_size);
-    size_t read_bytes = boost::asio::read(_socket, boost::asio::buffer(buffer.data(), batch_size), error);
-
-    validate_read(error, read_bytes, batch_size);
+    read(buffer.data(), batch_size);
 
     return std::move(buffer);
-}
-
-void Session::validate_read(boost::system::error_code& error, size_t read_bytes, size_t expected_bytes)
-{
-    if (error == boost::asio::error::eof || error == boost::asio::error::connection_reset)
-    {
-        throw DisconnectException("Client disconnected: " + std::to_string(_client_id));
-    }
-
-    if (read_bytes != expected_bytes)
-    {
-        throw std::runtime_error("Unexpected bytes count received: " + std::to_string(read_bytes) + " instead of " + std::to_string(expected_bytes));
-    }
 }

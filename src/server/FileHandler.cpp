@@ -1,6 +1,6 @@
 #include "FileHandler.h"
 
-size_t FileHandler::_file_id = 0;
+size_t FileHandler::_file_id = 1;
 
 FileHandler::FileHandler(std::string path)
     : _file(get_absolute_path(path), std::ios::binary)
