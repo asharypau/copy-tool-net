@@ -1,6 +1,6 @@
 #include "ClientApplication.h"
 
-#include <cstdint>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <ios>
@@ -63,17 +63,17 @@ void ClientApplication::write_batch(boost::asio::ip::tcp::socket& socket, const 
         return;
     }
 
-    uint64_t file_size = std::filesystem::file_size(file_name);
+    size_t file_size = std::filesystem::file_size(file_name);
     boost::asio::write(socket, boost::asio::buffer(&file_size, sizeof(file_size)));
 
-    uint64_t buffer_offset = sizeof(std::streamsize);
-    std::streamsize batch_size = 1024 * 1024;
+    size_t buffer_offset = sizeof(size_t);
+    size_t batch_size = 1024 * 1024;
     std::vector<char> buffer(buffer_offset + batch_size);
 
     while (true)
     {
         file.read(&buffer[buffer_offset], batch_size);
-        std::streamsize bytes_read = file.gcount();
+        size_t bytes_read = file.gcount();
 
         if (bytes_read == 0)
         {
@@ -82,7 +82,7 @@ void ClientApplication::write_batch(boost::asio::ip::tcp::socket& socket, const 
 
         std::memcpy(buffer.data(), &bytes_read, buffer_offset);
 
-        socket.write_some(boost::asio::buffer(buffer.data(), buffer_offset + bytes_read));
+        boost::asio::write(socket, boost::asio::buffer(buffer.data(), buffer_offset + bytes_read));
     }
 }
 
