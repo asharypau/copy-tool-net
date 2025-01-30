@@ -1,15 +1,17 @@
-#include "Session.h"
+#include "ServerSession.h"
+
+#include <string>
 
 #include "../exceptions/DisconnectException.h"
 #include "../utils/Logger.h"
-#include "FileHandler.h"
+#include "FileWriter.h"
 
-Session::Session(TcpClient tcp_client, size_t client_id)
+ServerSession::ServerSession(TcpClient tcp_client, size_t client_id)
     : _tcp_client(std::move(tcp_client)), _client_id(client_id)
 {
 }
 
-void Session::start()
+void ServerSession::start()
 {
     Logger::info("Client connected: " + std::to_string(_client_id));
 
@@ -21,7 +23,7 @@ void Session::start()
         }
         catch (const DisconnectException& ex)
         {
-            Logger::info(ex.what());
+            Logger::info(std::string(ex.what()) + ". Disconnected client: " + std::to_string(_client_id));
             break;
         }
         catch (const std::runtime_error& ex)
@@ -32,23 +34,23 @@ void Session::start()
     }
 }
 
-void Session::read()
+void ServerSession::read()
 {
     size_t file_size = read_size();
-    FileHandler file_handler("D:/Education/CppMentoring/files");
+    FileWriter file("D:/Education/CppMentoring/files");
 
     while (file_size > 0)
     {
         size_t batch_size = read_size();
         std::vector<char> batch = read_batch(batch_size);
 
-        file_handler.write(batch.data(), batch_size);
+        file.write(batch.data(), batch_size);
 
         file_size -= batch_size;
     }
 }
 
-size_t Session::read_size()
+size_t ServerSession::read_size()
 {
     size_t size = 0;
     _tcp_client.read(&size, sizeof(size));
@@ -56,7 +58,7 @@ size_t Session::read_size()
     return size;
 }
 
-std::vector<char> Session::read_batch(size_t batch_size)
+std::vector<char> ServerSession::read_batch(size_t batch_size)
 {
     std::vector<char> buffer(batch_size);
     _tcp_client.read(buffer.data(), batch_size);

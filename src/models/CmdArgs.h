@@ -1,5 +1,5 @@
-#ifndef CMDARGS_H
-#define CMDARGS_H
+#ifndef CMD_ARGS_H
+#define CMD_ARGS_H
 
 #include <string>
 
@@ -12,4 +12,4 @@ struct CmdArgs
     ApplicationType app_type = ApplicationType::UNKNOWN;
 };
 
-#endif  // CMDARGS_H
+#endif  // CMD_ARGS_H

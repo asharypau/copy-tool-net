@@ -1,8 +1,8 @@
-#include "FileHandler.h"
+#include "FileWriter.h"
 
-size_t FileHandler::_file_id = 1;
+size_t FileWriter::_file_id = 1;
 
-FileHandler::FileHandler(std::string path)
+FileWriter::FileWriter(std::string path)
     : _file(get_absolute_path(path), std::ios::binary)
 {
     if (_file)
@@ -11,12 +11,12 @@ FileHandler::FileHandler(std::string path)
     }
 }
 
-void FileHandler::write(char* data, size_t size)
+void FileWriter::write(char* data, size_t size)
 {
     _file.write(data, size);
 }
 
-std::string FileHandler::get_absolute_path(std::string path)
+std::string FileWriter::get_absolute_path(std::string path)
 {
     if (path.back() != '/')
     {

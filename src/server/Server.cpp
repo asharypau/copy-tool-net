@@ -1,7 +1,7 @@
 #include "Server.h"
 
 #include "../utils/Logger.h"
-#include "Session.h"
+#include "ServerSession.h"
 
 void Server::run(CmdArgs cmd_args)
 {
@@ -36,7 +36,7 @@ void Server::start_accept(boost::asio::io_context& context, boost::asio::ip::tcp
         ++client_id;
 
         TcpClient tcp_client(std::move(socket));
-        Session session(std::move(tcp_client), client_id);
+        ServerSession session(std::move(tcp_client), client_id);
 
         session.start();
     }

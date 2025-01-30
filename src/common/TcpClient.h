@@ -1,5 +1,5 @@
-#ifndef TCPCLIENT_H
-#define TCPCLIENT_H
+#ifndef TCP_CLIENT_H
+#define TCP_CLIENT_H
 
 #include <boost/asio.hpp>
 
@@ -39,4 +39,4 @@ private:
     boost::asio::ip::tcp::socket _socket;
 };
 
-#endif  // TCPCLIENT_H
+#endif  // TCP_CLIENT_H

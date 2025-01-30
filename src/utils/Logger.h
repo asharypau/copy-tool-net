@@ -4,6 +4,10 @@
 #include <iostream>
 #include <string>
 
+#define RESET "\033[0m"
+#define RED "\033[31m"
+#define YELLOW "\033[33m"
+
 class Logger
 {
 public:
@@ -14,12 +18,12 @@ public:
 
     static void warning(const std::string& message)
     {
-        std::cout << "[WARNING]: " << message << std::endl;
+        std::cout << YELLOW << "[WARNING]: " << RESET << message << std::endl;
     }
 
     static void error(const std::string& message)
     {
-        std::cout << "[ERROR]: " << message << std::endl;
+        std::cout << RED << "[ERROR]: " << RESET << message << std::endl;
     }
 };
 

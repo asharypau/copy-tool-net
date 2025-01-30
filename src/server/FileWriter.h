@@ -4,10 +4,10 @@
 #include <fstream>
 #include <string>
 
-class FileHandler
+class FileWriter
 {
 public:
-    explicit FileHandler(std::string path);
+    explicit FileWriter(std::string path);
 
     void write(char* date, size_t size);
 

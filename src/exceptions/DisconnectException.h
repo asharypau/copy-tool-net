@@ -1,5 +1,5 @@
-#ifndef DISCONNECTEXCEPTION_H
-#define DISCONNECTEXCEPTION_H
+#ifndef DISCONNECT_EXCEPTION_H
+#define DISCONNECT_EXCEPTION_H
 
 #include <exception>
 #include <string>
@@ -18,4 +18,4 @@ private:
     const std::string _message;
 };
 
-#endif  // DISCONNECTEXCEPTION_H
+#endif  // DISCONNECT_EXCEPTION_H
