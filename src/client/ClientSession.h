@@ -3,6 +3,7 @@
 
 #include "../common/TcpClient.h"
 #include "FilePathPrompt.h"
+#include "FileReader.h"
 
 class ClientSession
 {
@@ -13,7 +14,7 @@ public:
 
 private:
     void write();
-    void write_file(const std::string& file_name);
+    void write_file(FileReader& file);
 
     TcpClient _tcp_client;
     FilePathPrompt _file_path_prompt;

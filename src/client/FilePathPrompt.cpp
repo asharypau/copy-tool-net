@@ -26,8 +26,10 @@ std::vector<std::string> FilePathPrompt::get()
         {
             result.push_back(file_name);
         }
-
-        std::cout << RED << "File does not exist: " << RESET << file_name << std::endl;
+        else
+        {
+            std::cout << RED << "File does not exist: " << RESET << file_name << std::endl;
+        }
     }
 
     return std::move(result);

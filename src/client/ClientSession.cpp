@@ -2,7 +2,6 @@
 
 #include "../exceptions/DisconnectException.h"
 #include "../utils/Logger.h"
-#include "FileReader.h"
 
 ClientSession::ClientSession(TcpClient tcp_client)
     : _tcp_client(std::move(tcp_client)), _file_path_prompt()
@@ -40,25 +39,27 @@ void ClientSession::write()
 
         for (const std::string& file_name : file_names)
         {
-            write_file(file_name);
+            FileReader file(file_name);
+
+            size_t file_size = file.get_size();
+            _tcp_client.write(&file_size, sizeof(file_size));
+
+            write_file(file);
         }
     }
 }
 
-void ClientSession::write_file(const std::string& file_name)
+void ClientSession::write_file(FileReader& file)
 {
-    FileReader file(file_name);
-
-    size_t file_size = file.get_size();
-    _tcp_client.write(&file_size, sizeof(file_size));
-
-    size_t buffer_offset = sizeof(size_t);
     size_t batch_size = 1024 * 1024;
+    size_t buffer_offset = sizeof(batch_size);
+
     std::vector<char> buffer(buffer_offset + batch_size);
 
     while (true)
     {
         size_t bytes_read = file.read(&buffer[buffer_offset], batch_size);
+
         if (bytes_read == 0)
         {
             break;
