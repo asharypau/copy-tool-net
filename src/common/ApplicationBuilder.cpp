@@ -1,6 +1,5 @@
 #include "ApplicationBuilder.h"
 
-#include <memory>
 #include <stdexcept>
 
 #include "../client/ClientApplication.h"

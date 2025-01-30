@@ -6,7 +6,7 @@
 #include <string_view>
 #include <type_traits>
 
-#include "../common/CmdArgs.h"
+#include "../models/CmdArgs.h"
 
 class CmdArgsParser
 {

@@ -1,7 +1,7 @@
 #ifndef IAPPLICATION_H
 #define IAPPLICATION_H
 
-#include "CmdArgs.h"
+#include "../models/CmdArgs.h"
 
 class IApplication
 {

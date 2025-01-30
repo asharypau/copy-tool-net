@@ -1,5 +1,5 @@
-#include "common/CmdArgs.h"
-#include "utils/ApplicationBuilder.h"
+#include "common/ApplicationBuilder.h"
+#include "models/CmdArgs.h"
 #include "utils/CmdArgsParser.h"
 
 int main(int argc, char* argv[])
