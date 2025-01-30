@@ -1,6 +1,7 @@
 add_executable(
     CopyToolNet
     CopyToolNet.cpp
+    common/TcpClient.cpp
     utils/ApplicationBuilder.cpp
     utils/CmdArgsParser.cpp
     server/Server.cpp

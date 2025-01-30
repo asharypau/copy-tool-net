@@ -4,8 +4,8 @@
 #include "../utils/Logger.h"
 #include "FileHandler.h"
 
-Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
-    : _socket(std::move(socket)), _client_id(client_id)
+Session::Session(TcpClient tcp_client, size_t client_id)
+    : _tcp_client(std::move(tcp_client)), _client_id(client_id)
 {
 }
 
@@ -17,7 +17,7 @@ void Session::start()
     {
         try
         {
-            read_file();
+            read();
         }
         catch (const DisconnectException& ex)
         {
@@ -32,7 +32,7 @@ void Session::start()
     }
 }
 
-void Session::read_file()
+void Session::read()
 {
     size_t file_size = read_size();
     FileHandler file_handler("D:/Education/CppMentoring/files");
@@ -51,7 +51,7 @@ void Session::read_file()
 size_t Session::read_size()
 {
     size_t size = 0;
-    read(&size, sizeof(size));
+    _tcp_client.read(&size, sizeof(size));
 
     return size;
 }
@@ -59,7 +59,7 @@ size_t Session::read_size()
 std::vector<char> Session::read_batch(size_t batch_size)
 {
     std::vector<char> buffer(batch_size);
-    read(buffer.data(), batch_size);
+    _tcp_client.read(buffer.data(), batch_size);
 
     return std::move(buffer);
 }

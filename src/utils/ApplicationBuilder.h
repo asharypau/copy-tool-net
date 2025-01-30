@@ -9,6 +9,12 @@
 class ApplicationBuilder
 {
 public:
+    /**
+     * @brief Builds an application of the specified type.
+     *
+     * @param type The type of application to build.
+     * @return std::unique_ptr<IApplication> A unique pointer to the built application.
+     */
     std::unique_ptr<IApplication> build(ApplicationType type);
 };
 

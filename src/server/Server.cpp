@@ -29,12 +29,15 @@ void Server::start_accept(boost::asio::io_context& context, boost::asio::ip::tcp
 
     while (true)
     {
+        // create a socket per a client and wait for a connection
         boost::asio::ip::tcp::socket socket(context);
         acceptor.accept(socket);
 
         ++client_id;
 
-        Session session(std::move(socket), client_id);
+        TcpClient tcp_client(std::move(socket));
+        Session session(std::move(tcp_client), client_id);
+
         session.start();
     }
 }
