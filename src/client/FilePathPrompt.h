@@ -10,6 +10,7 @@ public:
     std::vector<std::string> get();
 
 private:
+    std::vector<std::string> internal_get();
     bool exists(const std::string& file_name);
 };
 

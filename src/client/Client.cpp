@@ -22,7 +22,7 @@ void Client::run(CmdArgs cmd_args)
 
         tcp_client.connect(cmd_args.host, cmd_args.port);
 
-        Logger::info("Connected to server");
+        Logger::info("Connected to server by " + cmd_args.host + ":" + std::to_string(cmd_args.port));
 
         write(tcp_client);
     }
@@ -55,6 +55,8 @@ void Client::write(TcpClient& tcp_client)
             tcp_client.write(&file_size, sizeof(file_size));
 
             write_file(tcp_client, file);
+
+            Logger::info("File sent: " + file_name + " (" + std::to_string(file_size) + " bytes)");
         }
     }
 }

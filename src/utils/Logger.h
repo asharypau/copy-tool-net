@@ -4,26 +4,24 @@
 #include <iostream>
 #include <string>
 
-#define RESET "\033[0m"
-#define RED "\033[31m"
-#define YELLOW "\033[33m"
+#include "../models/Colors.h"
 
 class Logger
 {
 public:
     static void info(const std::string& message)
     {
-        std::cout << "[INFO]: " << message << std::endl;
+        std::cout << Colors::WHITE << "[INFO]: " << Colors::RESET << message << std::endl;
     }
 
     static void warning(const std::string& message)
     {
-        std::cout << YELLOW << "[WARNING]: " << RESET << message << std::endl;
+        std::cout << Colors::YELLOW << "[WARNING]: " << Colors::RESET << message << std::endl;
     }
 
     static void error(const std::string& message)
     {
-        std::cout << RED << "[ERROR]: " << RESET << message << std::endl;
+        std::cout << Colors::RED << "[ERROR]: " << Colors::RESET << message << std::endl;
     }
 };
 

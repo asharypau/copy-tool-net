@@ -4,16 +4,44 @@
 #include <iostream>
 #include <sstream>
 
-#define RESET "\033[0m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define YELLOW "\033[33m"
+#include "../models/Colors.h"
 
 std::vector<std::string> FilePathPrompt::get()
 {
+    std::vector<std::string> result = internal_get();
+
+    if (result.empty())
+    {
+        std::cout << Colors::RED << "No files to send. " << Colors::RESET << "Do you want to try again? (Y/N): ";
+        char choice;
+        std::cin >> choice;
+        std::cout << std::endl;
+
+        if (choice == 'y' || choice == 'Y')
+        {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+            result = internal_get();
+        }
+    }
+    else
+    {
+        std::cout << Colors::GREEN << "Files to send: " << Colors::RESET;
+
+        for (int i = 0; i < result.size(); ++i)
+        {
+            std::cout << i << ". " << result[i] << std::endl;
+        }
+    }
+
+    return std::move(result);
+}
+
+std::vector<std::string> FilePathPrompt::internal_get()
+{
     std::vector<std::string> result;
 
-    std::cout << "Enter one or more files to send: ";
+    std::cout << Colors::WHITE << "Enter one or more files to send: " << Colors::RESET;
 
     std::string input;
     std::getline(std::cin, input);
@@ -28,7 +56,7 @@ std::vector<std::string> FilePathPrompt::get()
         }
         else
         {
-            std::cout << RED << "File does not exist: " << RESET << file_name << std::endl;
+            std::cout << Colors::RED << "File does not exist: " << Colors::RESET << file_name << std::endl;
         }
     }
 
