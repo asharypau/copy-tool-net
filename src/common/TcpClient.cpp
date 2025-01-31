@@ -1,9 +1,11 @@
 #include "TcpClient.h"
 
+#include <string>
+
 #include "../exceptions/DisconnectException.h"
 
-TcpClient::TcpClient(boost::asio::ip::tcp::socket socket)
-    : _socket(std::move(socket))
+TcpClient::TcpClient(boost::asio::io_context& context)
+    : _socket(context)
 {
 }
 
@@ -25,6 +27,23 @@ TcpClient& TcpClient::operator=(TcpClient&& other) noexcept
     }
 
     return *this;
+}
+
+void TcpClient::connect(const std::string& host, unsigned short port)
+{
+    boost::asio::ip::tcp::resolver resolver(_socket.get_executor());
+    boost::asio::ip::tcp::resolver::results_type endpoint = resolver.resolve(host, std::to_string(port));
+
+    boost::asio::connect(_socket, endpoint);
+}
+
+void TcpClient::accept(const std::string& host, unsigned short port)
+{
+    // boost::asio::ip::make_address(host)
+    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
+    boost::asio::ip::tcp::acceptor acceptor(_socket.get_executor(), endpoint);
+
+    acceptor.accept(_socket);
 }
 
 void TcpClient::validate_result(boost::system::error_code& error, size_t size_in_bytes, size_t read_bytes)

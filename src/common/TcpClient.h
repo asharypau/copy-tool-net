@@ -2,11 +2,12 @@
 #define TCP_CLIENT_H
 
 #include <boost/asio.hpp>
+#include <string>
 
 class TcpClient
 {
 public:
-    explicit TcpClient(boost::asio::ip::tcp::socket socket);
+    explicit TcpClient(boost::asio::io_context& context);
     TcpClient(TcpClient&&) noexcept;
     ~TcpClient();
 
@@ -14,6 +15,9 @@ public:
 
     TcpClient(const TcpClient&) = delete;
     TcpClient& operator=(const TcpClient&) = delete;
+
+    void connect(const std::string& host, unsigned short port);
+    void accept(const std::string& host, unsigned short port);
 
     template <class TData>
     void write(TData* data, size_t size_in_bytes)

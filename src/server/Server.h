@@ -11,7 +11,7 @@ public:
     void run(CmdArgs cmd_args) override;
 
 private:
-    void start_accept(boost::asio::io_context& context, boost::asio::ip::tcp::acceptor& acceptor);
+    void start_accept(const std::string& host, unsigned short port);
 };
 
 #endif  // SERVER_H

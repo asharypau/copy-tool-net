@@ -1,17 +1,17 @@
-#include "ServerSession.h"
-
 #include <string>
 
 #include "../exceptions/DisconnectException.h"
 #include "../utils/Logger.h"
 #include "FileWriter.h"
+#include "Session.h"
 
-ServerSession::ServerSession(TcpClient tcp_client, size_t client_id)
+
+Session::Session(TcpClient tcp_client, size_t client_id)
     : _tcp_client(std::move(tcp_client)), _client_id(client_id)
 {
 }
 
-void ServerSession::start()
+void Session::start()
 {
     Logger::info("Client connected: " + std::to_string(_client_id));
 
@@ -34,7 +34,7 @@ void ServerSession::start()
     }
 }
 
-void ServerSession::read()
+void Session::read()
 {
     size_t file_size = read_size();
     FileWriter file("D:/Education/CppMentoring/files");
@@ -50,7 +50,7 @@ void ServerSession::read()
     }
 }
 
-size_t ServerSession::read_size()
+size_t Session::read_size()
 {
     size_t size = 0;
     _tcp_client.read(&size, sizeof(size));
@@ -58,7 +58,7 @@ size_t ServerSession::read_size()
     return size;
 }
 
-std::vector<char> ServerSession::read_batch(size_t batch_size)
+std::vector<char> Session::read_batch(size_t batch_size)
 {
     std::vector<char> buffer(batch_size);
     _tcp_client.read(buffer.data(), batch_size);

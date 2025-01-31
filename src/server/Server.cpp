@@ -1,7 +1,7 @@
 #include "Server.h"
 
 #include "../utils/Logger.h"
-#include "ServerSession.h"
+#include "Session.h"
 
 void Server::run(CmdArgs cmd_args)
 {
@@ -9,11 +9,7 @@ void Server::run(CmdArgs cmd_args)
     {
         Logger::info("Server started");
 
-        boost::asio::io_context context;
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), cmd_args.port);
-        boost::asio::ip::tcp::acceptor acceptor(context, endpoint);
-
-        start_accept(context, acceptor);
+        start_accept(cmd_args.host, cmd_args.port);
 
         Logger::info("Server stopped");
     }
@@ -23,21 +19,19 @@ void Server::run(CmdArgs cmd_args)
     }
 }
 
-void Server::start_accept(boost::asio::io_context& context, boost::asio::ip::tcp::acceptor& acceptor)
+void Server::start_accept(const std::string& host, unsigned short port)
 {
     size_t client_id = 0;
+    boost::asio::io_context context;
 
     while (true)
     {
-        // create a socket per a client and wait for a connection
-        boost::asio::ip::tcp::socket socket(context);
-        acceptor.accept(socket);
-
         ++client_id;
 
-        TcpClient tcp_client(std::move(socket));
-        ServerSession session(std::move(tcp_client), client_id);
+        TcpClient tcp_client(context);
+        tcp_client.accept(host, port);
 
+        Session session(std::move(tcp_client), client_id);
         session.start();
     }
 }

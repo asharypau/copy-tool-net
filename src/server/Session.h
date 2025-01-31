@@ -1,12 +1,12 @@
-#ifndef SERVER_SESSION_H
-#define SERVER_SESSION_H
+#ifndef SESSION_H
+#define SESSION_H
 
 #include "../common/TcpClient.h"
 
-class ServerSession
+class Session
 {
 public:
-    ServerSession(TcpClient tcp_client, size_t client_id);
+    Session(TcpClient tcp_client, size_t client_id);
 
     void start();
 
@@ -19,4 +19,4 @@ private:
     size_t _client_id;
 };
 
-#endif  // SERVER_SESSION_H
+#endif  // SESSION_H
