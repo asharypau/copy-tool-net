@@ -1,22 +1,25 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <string>
+
 #include "../common/IApplication.h"
-#include "../common/TcpClient.h"
 #include "FilePathPrompt.h"
 #include "FileReader.h"
+#include "TcpClient.h"
 
 class Client : public IApplication
 {
 public:
-    Client();
+    Client(unsigned short port, const std::string& host);
 
-    void run(CmdArgs cmd_args) override;
+    void run() override;
 
 private:
-    void write(TcpClient& tcp_client);
-    void write_file(TcpClient& tcp_client, FileReader& file);
+    void write();
+    void write_file(FileReader& file);
 
+    TcpClient _tcp_client;
     FilePathPrompt _file_path_prompt;
 };
 

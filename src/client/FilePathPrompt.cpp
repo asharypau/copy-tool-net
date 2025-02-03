@@ -13,6 +13,7 @@ std::vector<std::string> FilePathPrompt::get()
     if (result.empty())
     {
         std::cout << Colors::RED << "No files to send. " << Colors::RESET << "Do you want to try again? (Y/N): ";
+
         char choice;
         std::cin >> choice;
         std::cout << std::endl;
@@ -30,7 +31,7 @@ std::vector<std::string> FilePathPrompt::get()
 
         for (int i = 0; i < result.size(); ++i)
         {
-            std::cout << i << ". " << result[i] << std::endl;
+            std::cout << i + 1 << ". " << result[i] << std::endl;
         }
     }
 
@@ -39,18 +40,19 @@ std::vector<std::string> FilePathPrompt::get()
 
 std::vector<std::string> FilePathPrompt::internal_get()
 {
-    std::vector<std::string> result;
-
     std::cout << Colors::WHITE << "Enter one or more files to send: " << Colors::RESET;
+
+    std::vector<std::string> result;
 
     std::string input;
     std::getline(std::cin, input);
-    std::istringstream file_names(input);
 
+    std::istringstream file_names(input);
     std::string file_name;
+
     while (file_names >> file_name)
     {
-        if (exists(file_name))
+        if (std::filesystem::exists(file_name))
         {
             result.push_back(file_name);
         }
@@ -61,9 +63,4 @@ std::vector<std::string> FilePathPrompt::internal_get()
     }
 
     return std::move(result);
-}
-
-bool FilePathPrompt::exists(const std::string& file_name)
-{
-    return std::filesystem::exists(file_name);
 }

@@ -3,13 +3,22 @@
 #include "../utils/Logger.h"
 #include "Session.h"
 
-void Server::run(CmdArgs cmd_args)
+size_t Server::_client_id = 0;
+
+Server::Server(unsigned short port)
+    : _context(),
+      _acceptor(_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+{
+}
+
+void Server::run()
 {
     try
     {
         Logger::info("Server started");
 
-        start_accept(cmd_args.host, cmd_args.port);
+        accept();
+        _context.run();
 
         Logger::info("Server stopped");
     }
@@ -19,19 +28,17 @@ void Server::run(CmdArgs cmd_args)
     }
 }
 
-void Server::start_accept(const std::string& host, unsigned short port)
+void Server::accept()
 {
-    size_t client_id = 0;
-    boost::asio::io_context context;
+    _acceptor.async_accept(
+        [this](const boost::system::error_code& error, boost::asio::ip::tcp::socket socket)
+        {
+            if (!error)
+            {
+                ++_client_id;
+                std::make_shared<Session>(std::move(socket), _client_id)->start();
+            }
 
-    while (true)
-    {
-        ++client_id;
-
-        TcpClient tcp_client(context);
-        tcp_client.accept(host, port);
-
-        Session session(std::move(tcp_client), client_id);
-        session.start();
-    }
+            accept();  // wait for another connection
+        });
 }

@@ -7,9 +7,10 @@
 class FileWriter
 {
 public:
-    explicit FileWriter(std::string path);
-
+    void open(const std::string& file_name);
+    void close();
     void write(char* date, size_t size);
+    bool is_open() const;
 
 private:
     std::string get_absolute_path(std::string path);

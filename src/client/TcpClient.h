@@ -7,7 +7,7 @@
 class TcpClient
 {
 public:
-    explicit TcpClient(boost::asio::io_context& context);
+    TcpClient();
     TcpClient(TcpClient&&) noexcept;
     ~TcpClient();
 
@@ -27,19 +27,7 @@ public:
      * @param host The hostname or IP address of the remote server.
      * @param port The port number on the remote server to connect to.
      */
-    void connect(const std::string& host, unsigned short port);
-
-    /**
-     * @brief Accepts a connection from the specified host and port.
-     *
-     * This method sets up the client to accept a connection from a remote server
-     * using the provided hostname and port number. Once the connection is accepted,
-     * the client will be able to send and receive data over the network.
-     *
-     * @param host The hostname or IP address of the remote server.
-     * @param port The port number on the remote server to accept the connection from.
-     */
-    void accept(const std::string& host, unsigned short port);
+    void connect(unsigned short port, const std::string& host);
 
     /**
      * @brief Writes data to the connected socket.
@@ -60,28 +48,10 @@ public:
         validate_result(error, size_in_bytes, read_bytes);
     }
 
-    /**
-     * @brief Reads data from the connected socket.
-     *
-     * This template method receives data from the network from the connected
-     * remote server. The data is read as a raw byte stream.
-     *
-     * @tparam TData The type of the data to be read.
-     * @param data A pointer to the buffer where the read data will be stored.
-     * @param size_in_bytes The size of the buffer, in bytes.
-     */
-    template <class TData>
-    void read(TData* data, size_t size_in_bytes)
-    {
-        boost::system::error_code error;
-        size_t read_bytes = boost::asio::read(_socket, boost::asio::buffer(data, size_in_bytes), error);
-
-        validate_result(error, size_in_bytes, read_bytes);
-    }
-
 private:
     void validate_result(boost::system::error_code& error, size_t size_in_bytes, size_t read_bytes);
 
+    boost::asio::io_context _context;
     boost::asio::ip::tcp::socket _socket;
 };
 

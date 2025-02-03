@@ -1,22 +1,30 @@
 #ifndef SESSION_H
 #define SESSION_H
 
-#include "../common/TcpClient.h"
+#include <boost/asio.hpp>
+#include <memory>
 
-class Session
+#include "FileWriter.h"
+
+class Session : public std::enable_shared_from_this<Session>
 {
 public:
-    Session(TcpClient tcp_client, size_t client_id);
+    Session(boost::asio::ip::tcp::socket socket, size_t client_id);
 
     void start();
 
 private:
     void read();
-    size_t read_size();
-    std::vector<char> read_batch(size_t batch_size);
+    void read_batch_size();
+    void read_batch();
+    void handle_error(const boost::system::error_code& error);
 
-    TcpClient _tcp_client;
+    boost::asio::ip::tcp::socket _socket;
+    std::vector<char> _batch_data;
+    FileWriter _file;
     size_t _client_id;
+    size_t _file_size;
+    size_t _batch_size;
 };
 
 #endif  // SESSION_H

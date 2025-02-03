@@ -8,8 +8,8 @@ int main(int argc, char* argv[])
     ApplicationBuilder builder;
 
     CmdArgs cmd_args = parser.parse(argc, argv);
-    std::unique_ptr<IApplication> app = builder.build(cmd_args.app_type);
-    app->run(cmd_args);
+    std::unique_ptr<IApplication> app = builder.build(cmd_args);
+    app->run();
 
     return 0;
 }

@@ -8,10 +8,17 @@
 class Server : public IApplication
 {
 public:
-    void run(CmdArgs cmd_args) override;
+    explicit Server(unsigned short port);
+
+    void run() override;
 
 private:
-    void start_accept(const std::string& host, unsigned short port);
+    void accept();
+
+    static size_t _client_id;
+
+    boost::asio::io_context _context;
+    boost::asio::ip::tcp::acceptor _acceptor;
 };
 
 #endif  // SERVER_H

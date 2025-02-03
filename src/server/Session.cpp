@@ -1,13 +1,17 @@
-#include <string>
-
-#include "../exceptions/DisconnectException.h"
-#include "../utils/Logger.h"
-#include "FileWriter.h"
 #include "Session.h"
 
+#include <cstddef>
 
-Session::Session(TcpClient tcp_client, size_t client_id)
-    : _tcp_client(std::move(tcp_client)), _client_id(client_id)
+#include "../utils/Logger.h"
+#include "FileWriter.h"
+
+Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
+    : _socket(std::move(socket)),
+      _batch_data(),
+      _file(),
+      _client_id(client_id),
+      _file_size(0),
+      _batch_size(0)
 {
 }
 
@@ -15,53 +19,97 @@ void Session::start()
 {
     Logger::info("Client connected: " + std::to_string(_client_id));
 
-    while (true)
-    {
-        try
-        {
-            read();
-        }
-        catch (const DisconnectException& ex)
-        {
-            Logger::info(std::string(ex.what()) + ". Disconnected client: " + std::to_string(_client_id));
-            break;
-        }
-        catch (const std::runtime_error& ex)
-        {
-            Logger::error("Error occurred: " + std::string(ex.what()) + " during processing client: " + std::to_string(_client_id));
-            break;
-        }
-    }
+    read();
 }
 
 void Session::read()
 {
-    size_t file_size = read_size();
-    FileWriter file("D:/Education/CppMentoring/files");
+    _file_size = 0;
 
-    while (file_size > 0)
+    std::shared_ptr<Session> self = shared_from_this();
+    boost::asio::async_read(
+        _socket,
+        boost::asio::buffer(&_file_size, sizeof(_file_size)),
+        [self, this](const boost::system::error_code& error, size_t read_bytes)
+        {
+            if (error)
+            {
+                handle_error(error);
+                return;
+            }
+
+            read_batch_size();
+        });
+}
+
+void Session::read_batch_size()
+{
+    _batch_size = 0;
+
+    std::shared_ptr<Session> self = shared_from_this();
+    boost::asio::async_read(
+        _socket,
+        boost::asio::buffer(&_batch_size, sizeof(_batch_size)),
+        [self, this](const boost::system::error_code& error, size_t read_bytes)
+        {
+            if (error)
+            {
+                handle_error(error);
+                return;
+            }
+
+            if (!_file.is_open())
+            {
+                _file.open("sad");
+            }
+
+            read_batch();
+        });
+}
+
+void Session::read_batch()
+{
+    if (_batch_data.size() != _batch_size)
     {
-        size_t batch_size = read_size();
-        std::vector<char> batch = read_batch(batch_size);
-
-        file.write(batch.data(), batch_size);
-
-        file_size -= batch_size;
+        _batch_data.resize(_batch_size);
     }
+
+    std::shared_ptr<Session> self = shared_from_this();
+    boost::asio::async_read(
+        _socket,
+        boost::asio::buffer(_batch_data.data(), _batch_size),
+        [self, this](const boost::system::error_code& error, size_t read_bytes)
+        {
+            if (error)
+            {
+                handle_error(error);
+                return;
+            }
+
+            _file.write(_batch_data.data(), _batch_size);
+            _file_size -= _batch_size;
+
+            if (_file_size > 0)
+            {
+                read_batch_size();
+            }
+            else
+            {
+                _file.close();
+                read();
+            }
+        });
 }
 
-size_t Session::read_size()
+void Session::handle_error(const boost::system::error_code& error)
 {
-    size_t size = 0;
-    _tcp_client.read(&size, sizeof(size));
+    if (error == boost::asio::error::eof)
+    {
+        Logger::info("Client disconnected: " + std::to_string(_client_id));
+    }
 
-    return size;
-}
-
-std::vector<char> Session::read_batch(size_t batch_size)
-{
-    std::vector<char> buffer(batch_size);
-    _tcp_client.read(buffer.data(), batch_size);
-
-    return std::move(buffer);
+    if (error == boost::asio::error::connection_reset)
+    {
+        Logger::error("The connection was reset by the remote side: " + std::to_string(_client_id));
+    }
 }

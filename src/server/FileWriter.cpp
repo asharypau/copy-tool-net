@@ -2,18 +2,25 @@
 
 size_t FileWriter::_file_id = 1;
 
-FileWriter::FileWriter(std::string path)
-    : _file(get_absolute_path(path), std::ios::binary)
+void FileWriter::open(const std::string& file_name)
 {
-    if (_file)
-    {
-        ++_file_id;
-    }
+    _file.open(get_absolute_path("D:/Education/CppMentoring/files/output"), std::ios::binary);
+    ++_file_id;
+}
+
+void FileWriter::close()
+{
+    _file.close();
 }
 
 void FileWriter::write(char* data, size_t size)
 {
     _file.write(data, size);
+}
+
+bool FileWriter::is_open() const
+{
+    return _file.is_open();
 }
 
 std::string FileWriter::get_absolute_path(std::string path)

@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "../common/IApplication.h"
-#include "../models/ApplicationType.h"
+#include "../models/CmdArgs.h"
 
 class ApplicationBuilder
 {
@@ -15,7 +15,7 @@ public:
      * @param type The type of application to build.
      * @return std::unique_ptr<IApplication> A unique pointer to the built application.
      */
-    std::unique_ptr<IApplication> build(ApplicationType type);
+    std::unique_ptr<IApplication> build(CmdArgs args);
 };
 
 #endif  // APPLICATION_BUILDER_H

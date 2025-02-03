@@ -1,10 +1,10 @@
-#include <filesystem>
-
 #include "FileReader.h"
 
+#include <filesystem>
 
 FileReader::FileReader(std::string file_name)
-    : _file(file_name, std::ifstream::binary), _file_name(std::move(file_name))
+    : _file(file_name, std::ifstream::binary),
+      _file_name(std::move(file_name))
 {
     if (!_file)
     {

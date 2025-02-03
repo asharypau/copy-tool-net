@@ -1,30 +1,22 @@
 #include "Client.h"
 
-#include <boost/asio.hpp>
-#include <string>
-
 #include "../exceptions/DisconnectException.h"
 #include "../utils/Logger.h"
 
-Client::Client()
-    : _file_path_prompt()
+Client::Client(unsigned short port, const std::string& host)
+    : _tcp_client(),
+      _file_path_prompt()
 {
+    _tcp_client.connect(port, host);
+
+    Logger::info("Connected to server by " + host + ":" + std::to_string(port));
 }
 
-void Client::run(CmdArgs cmd_args)
+void Client::run()
 {
     try
     {
-        Logger::info("Client started");
-
-        boost::asio::io_context context;
-        TcpClient tcp_client(context);
-
-        tcp_client.connect(cmd_args.host, cmd_args.port);
-
-        Logger::info("Connected to server by " + cmd_args.host + ":" + std::to_string(cmd_args.port));
-
-        write(tcp_client);
+        write();
     }
     catch (const DisconnectException& ex)
     {
@@ -36,7 +28,7 @@ void Client::run(CmdArgs cmd_args)
     }
 }
 
-void Client::write(TcpClient& tcp_client)
+void Client::write()
 {
     while (true)
     {
@@ -52,16 +44,16 @@ void Client::write(TcpClient& tcp_client)
             FileReader file(file_name);
 
             size_t file_size = file.get_size();
-            tcp_client.write(&file_size, sizeof(file_size));
+            _tcp_client.write(&file_size, sizeof(file_size));
 
-            write_file(tcp_client, file);
+            write_file(file);
 
             Logger::info("File sent: " + file_name + " (" + std::to_string(file_size) + " bytes)");
         }
     }
 }
 
-void Client::write_file(TcpClient& tcp_client, FileReader& file)
+void Client::write_file(FileReader& file)
 {
     size_t batch_size = 1024 * 1024;
     size_t buffer_offset = sizeof(batch_size);
@@ -71,7 +63,6 @@ void Client::write_file(TcpClient& tcp_client, FileReader& file)
     while (true)
     {
         size_t bytes_read = file.read(&buffer[buffer_offset], batch_size);
-
         if (bytes_read == 0)
         {
             break;
@@ -79,6 +70,6 @@ void Client::write_file(TcpClient& tcp_client, FileReader& file)
 
         std::memcpy(buffer.data(), &bytes_read, buffer_offset);
 
-        tcp_client.write(buffer.data(), buffer_offset + bytes_read);
+        _tcp_client.write(buffer.data(), buffer_offset + bytes_read);
     }
 }
