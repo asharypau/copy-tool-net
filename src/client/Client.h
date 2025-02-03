@@ -11,7 +11,7 @@
 class Client : public IApplication
 {
 public:
-    Client(unsigned short port, const std::string& host);
+    Client(unsigned short port, std::string host);
 
     void run() override;
 
@@ -21,6 +21,8 @@ private:
 
     TcpClient _tcp_client;
     FilePathPrompt _file_path_prompt;
+    std::string _host;
+    unsigned short _port;
 };
 
 #endif  // CLIENT_H

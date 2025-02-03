@@ -3,19 +3,24 @@
 #include "../exceptions/DisconnectException.h"
 #include "../utils/Logger.h"
 
-Client::Client(unsigned short port, const std::string& host)
+Client::Client(unsigned short port, std::string host)
     : _tcp_client(),
-      _file_path_prompt()
+      _file_path_prompt(),
+      _host(host),
+      _port(port)
 {
-    _tcp_client.connect(port, host);
-
-    Logger::info("Connected to server by " + host + ":" + std::to_string(port));
 }
 
 void Client::run()
 {
     try
     {
+        Logger::info("Client started");
+
+        _tcp_client.connect(_port, _host);
+
+        Logger::info("Connected to server by " + _host + ":" + std::to_string(_port));
+
         write();
     }
     catch (const DisconnectException& ex)
