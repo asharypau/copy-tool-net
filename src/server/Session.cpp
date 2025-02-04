@@ -4,13 +4,16 @@
 
 #include "../utils/Logger.h"
 #include "FileWriter.h"
+#include "boost/asio/read.hpp"
 
 Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
     : _socket(std::move(socket)),
+      _file_name(),
       _batch_data(),
       _file(),
       _client_id(client_id),
       _file_size(0),
+      _file_name_size(0),
       _batch_size(0)
 {
 }
@@ -19,10 +22,10 @@ void Session::start()
 {
     Logger::info("Client connected: " + std::to_string(_client_id));
 
-    read();
+    read_file_size();
 }
 
-void Session::read()
+void Session::read_file_size()
 {
     _file_size = 0;
 
@@ -38,6 +41,50 @@ void Session::read()
                 return;
             }
 
+            read_file_name_size();
+        });
+}
+
+void Session::read_file_name_size()
+{
+    _file_name_size = 0;
+
+    std::shared_ptr<Session> self = shared_from_this();
+    boost::asio::async_read(
+        _socket,
+        boost::asio::buffer(&_file_name_size, sizeof(_file_name_size)),
+        [self, this](const boost::system::error_code& error, size_t read_bytes)
+        {
+            if (error)
+            {
+                handle_error(error);
+                return;
+            }
+
+            read_file_name();
+        });
+}
+
+void Session::read_file_name()
+{
+    if (_file_name.size() != _file_name_size)
+    {
+        _file_name.resize(_file_name_size);
+    }
+
+    std::shared_ptr<Session> self = shared_from_this();
+    boost::asio::async_read(
+        _socket,
+        boost::asio::buffer(_file_name.data(), _file_name_size),
+        [self, this](const boost::system::error_code& error, size_t read_bytes)
+        {
+            if (error)
+            {
+                handle_error(error);
+                return;
+            }
+
+            _file.create(_file_name);
             read_batch_size();
         });
 }
@@ -56,11 +103,6 @@ void Session::read_batch_size()
             {
                 handle_error(error);
                 return;
-            }
-
-            if (!_file.is_open())
-            {
-                _file.open("sad");
             }
 
             read_batch();
@@ -96,7 +138,7 @@ void Session::read_batch()
             else
             {
                 _file.close();
-                read();
+                read_file_size();
             }
         });
 }

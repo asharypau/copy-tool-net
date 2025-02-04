@@ -1,11 +1,13 @@
 #include "FileWriter.h"
 
-size_t FileWriter::_file_id = 1;
+#include <filesystem>
+#include <string>
+#include <utility>
 
-void FileWriter::open(const std::string& file_name)
+void FileWriter::create(const std::string& file_name)
 {
-    _file.open(get_absolute_path("D:/Education/CppMentoring/files/output"), std::ios::binary);
-    ++_file_id;
+    std::string path = get_absolute_path(file_name);
+    _file.open(path, std::ios::binary);
 }
 
 void FileWriter::close()
@@ -18,17 +20,19 @@ void FileWriter::write(char* data, size_t size)
     _file.write(data, size);
 }
 
-bool FileWriter::is_open() const
+std::string FileWriter::get_absolute_path(const std::string& file_name)
 {
-    return _file.is_open();
-}
+    std::string result;
 
-std::string FileWriter::get_absolute_path(std::string path)
-{
-    if (path.back() != '/')
+    for (unsigned int i = 1; i < std::numeric_limits<int>::max(); ++i)
     {
-        path += '/';
+        result = std::string(PATH) + file_name + std::to_string(i);
+
+        if (!std::filesystem::exists(result))
+        {
+            break;
+        }
     }
 
-    return path + std::to_string(_file_id) + ".txt";
+    return std::move(result);
 }

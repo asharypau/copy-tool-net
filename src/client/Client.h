@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <cstddef>
 #include <string>
 
 #include "../common/IApplication.h"
@@ -17,6 +18,8 @@ public:
 
 private:
     void write();
+    void write_file_size(size_t size);
+    void write_file_name(const std::string& name);
     void write_file(FileReader& file);
 
     TcpClient _tcp_client;

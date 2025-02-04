@@ -1,7 +1,5 @@
 #include "TcpClient.h"
 
-#include "../exceptions/DisconnectException.h"
-
 TcpClient::TcpClient()
     : _context(),
       _socket(_context)
@@ -40,7 +38,7 @@ void TcpClient::validate_result(boost::system::error_code& error, size_t size_in
 {
     if (error == boost::asio::error::eof || error == boost::asio::error::connection_reset)
     {
-        throw DisconnectException("The connection was broken");
+        throw std::runtime_error("The connection was broken");
     }
 
     if (read_bytes != size_in_bytes)

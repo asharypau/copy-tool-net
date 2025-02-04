@@ -3,19 +3,20 @@
 
 #include <fstream>
 #include <string>
+#include <string_view>
 
 class FileWriter
 {
 public:
-    void open(const std::string& file_name);
+    void create(const std::string& file_name);
     void close();
     void write(char* date, size_t size);
-    bool is_open() const;
 
 private:
-    std::string get_absolute_path(std::string path);
+    std::string get_absolute_path(const std::string& file_name);
 
-    static size_t _file_id;
+    static constexpr std::string_view PATH = "D:/Education/CppMentoring/files/output/";
+
     std::ofstream _file;
 };
 

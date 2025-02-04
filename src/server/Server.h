@@ -13,6 +13,13 @@ public:
     void run() override;
 
 private:
+    /**
+     * @brief Asynchronously accepts incoming connections.
+     *
+     * This method initiates an asynchronous accept operation to wait for a new
+     * connection. When a new connection is accepted, it creates a new session
+     * for the client and starts it.
+     */
     void accept();
 
     static size_t _client_id;

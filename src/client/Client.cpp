@@ -1,6 +1,8 @@
 #include "Client.h"
 
-#include "../exceptions/DisconnectException.h"
+#include <cstddef>
+#include <utility>
+
 #include "../utils/Logger.h"
 
 Client::Client(unsigned short port, std::string host)
@@ -23,10 +25,6 @@ void Client::run()
 
         write();
     }
-    catch (const DisconnectException& ex)
-    {
-        Logger::info(std::string(ex.what()) + ". Server disconnected");
-    }
     catch (const std::exception& ex)
     {
         Logger::error("Error occurred: " + std::string(ex.what()));
@@ -37,25 +35,41 @@ void Client::write()
 {
     while (true)
     {
-        std::vector<std::string> file_names = _file_path_prompt.get();
-
-        if (file_names.empty())
+        std::vector<std::pair<std::string, std::string>> files_data = _file_path_prompt.get();
+        if (files_data.empty())
         {
             break;
         }
 
-        for (const std::string& file_name : file_names)
+        for (const std::pair<std::string, std::string>& file_data : files_data)
         {
-            FileReader file(file_name);
+            FileReader file(file_data.first, file_data.second);
 
-            size_t file_size = file.get_size();
-            _tcp_client.write(&file_size, sizeof(file_size));
-
+            write_file_size(file.get_size());
+            write_file_name(file.get_name());
             write_file(file);
 
-            Logger::info("File sent: " + file_name + " (" + std::to_string(file_size) + " bytes)");
+            Logger::info("File sent: " + file.get_name() + " (" + std::to_string(file.get_size()) + " bytes)");
         }
     }
+}
+
+void Client::write_file_size(size_t size)
+{
+    _tcp_client.write(&size, sizeof(size));
+}
+
+void Client::write_file_name(const std::string& name)
+{
+    size_t name_size = name.size();
+    size_t buffer_offset = sizeof(name_size);
+
+    std::vector<char> buffer(buffer_offset + name_size);
+
+    std::memcpy(buffer.data(), &name_size, buffer_offset);
+    std::memcpy(&buffer[buffer_offset], name.data(), name_size);
+
+    _tcp_client.write(buffer.data(), buffer_offset + name_size);
 }
 
 void Client::write_file(FileReader& file)

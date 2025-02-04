@@ -1,14 +1,13 @@
 #include "FileReader.h"
 
-#include <filesystem>
-
-FileReader::FileReader(std::string file_name)
-    : _file(file_name, std::ifstream::binary),
-      _file_name(std::move(file_name))
+FileReader::FileReader(std::string name, std::string path)
+    : _file(path, std::ifstream::binary),
+      _name(std::move(name)),
+      _path(std::move(path))
 {
     if (!_file)
     {
-        throw std::runtime_error("Failed to open file: " + file_name);
+        throw std::runtime_error("Failed to open file: " + path);
     }
 }
 
@@ -17,9 +16,4 @@ size_t FileReader::read(char* data, size_t size)
     _file.read(data, size);
 
     return _file.gcount();
-}
-
-size_t FileReader::get_size() const
-{
-    return std::filesystem::file_size(_file_name);
 }

@@ -2,7 +2,10 @@
 #define SESSION_H
 
 #include <boost/asio.hpp>
+#include <cstddef>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "FileWriter.h"
 
@@ -14,16 +17,21 @@ public:
     void start();
 
 private:
-    void read();
+    void read_file_size();
+    void read_file_name_size();
+    void read_file_name();
     void read_batch_size();
     void read_batch();
     void handle_error(const boost::system::error_code& error);
 
     boost::asio::ip::tcp::socket _socket;
+    std::string _file_name;
     std::vector<char> _batch_data;
     FileWriter _file;
+
     size_t _client_id;
     size_t _file_size;
+    size_t _file_name_size;
     size_t _batch_size;
 };
 
