@@ -22,7 +22,6 @@ std::vector<std::pair<std::string, std::string>> FilePathPrompt::get()
         char choice;
         std::cin >> choice;
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << std::endl;
 
         if (choice == 'y' || choice == 'Y')
         {
