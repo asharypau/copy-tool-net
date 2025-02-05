@@ -1,6 +1,8 @@
 #include "FileHandler.h"
 
 #include <filesystem>
+#include <istream>
+#include <vector>
 
 FileHandler::FileHandler(size_t bytes_to_write)
     : _bytes_to_write(bytes_to_write)
@@ -18,10 +20,13 @@ void FileHandler::create(const std::string& file_name)
     _file.open(path, std::ios::binary);
 }
 
-void FileHandler::write(char* data, size_t size)
+void FileHandler::write(boost::asio::streambuf& buffer, size_t size)
 {
-    _file.write(data, size);
+    std::istream is(&buffer);
+    std::vector<char> temp(size);
+    is.read(temp.data(), size);
 
+    _file.write(temp.data(), size);
     if (_file.good())
     {
         _bytes_to_write -= size;

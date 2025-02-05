@@ -2,6 +2,7 @@
 #define SESSION_H
 
 #include <boost/asio.hpp>
+#include <memory>
 
 #include "../utils/Logger.h"
 #include "FileHandler.h"
@@ -17,15 +18,24 @@ private:
     void read_file_size();
     void read_file_name(std::shared_ptr<FileHandler> file);
     void read_batch(std::shared_ptr<FileHandler> file);
+    size_t read_size_from_buffer();
+
     void handle_error(const boost::system::error_code& error);
 
-    template <class TData, class THandler>
-    void read_async(TData* data, size_t size_in_bytes, THandler&& handle)
+    template <class THandler>
+    void read_size_async(THandler&& handle)
+    {
+        read_data_async(sizeof(size_t), std::forward<THandler>(handle));
+    }
+
+    template <class THandler>
+    void read_data_async(size_t size_in_bytes, THandler&& handle)
     {
         std::shared_ptr<Session> self = shared_from_this();
         boost::asio::async_read(
             _socket,
-            boost::asio::buffer(data, size_in_bytes),
+            _buffer,
+            boost::asio::transfer_exactly(size_in_bytes),
             [self, handle = std::forward<THandler>(handle)](const boost::system::error_code& error, size_t read_bytes)
             {
                 try
@@ -48,6 +58,7 @@ private:
 
     size_t _client_id;
     boost::asio::ip::tcp::socket _socket;
+    boost::asio::streambuf _buffer;
 };
 
 #endif  // SESSION_H

@@ -1,8 +1,11 @@
 #include "Session.h"
 
+#include <string>
+
 Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
     : _client_id(client_id),
-      _socket(std::move(socket))
+      _socket(std::move(socket)),
+      _buffer()
 {
 }
 
@@ -15,14 +18,11 @@ void Session::start()
 
 void Session::read_file_size()
 {
-    std::shared_ptr<size_t> file_size = std::make_shared<size_t>(0);
-
-    read_async(
-        file_size.get(),
-        sizeof(*file_size),
-        [this, file_size]
+    read_size_async(
+        [this]
         {
-            std::shared_ptr<FileHandler> file = std::make_shared<FileHandler>(*file_size);
+            size_t size = read_size_from_buffer();
+            std::shared_ptr<FileHandler> file = std::make_shared<FileHandler>(size);
 
             read_file_name(file);
         });
@@ -30,21 +30,20 @@ void Session::read_file_size()
 
 void Session::read_file_name(std::shared_ptr<FileHandler> file)
 {
-    std::shared_ptr<size_t> file_name_size = std::make_shared<size_t>(0);
-
-    read_async(
-        file_name_size.get(),
-        sizeof(*file_name_size),
-        [this, file, file_name_size]
+    read_size_async(
+        [this, file]
         {
-            std::shared_ptr<std::string> file_name = std::make_shared<std::string>(*file_name_size, '\0');
+            size_t size = read_size_from_buffer();
 
-            read_async(
-                file_name.get()->data(),
-                *file_name_size,
-                [this, file, file_name]
+            read_data_async(
+                size,
+                [this, file, size]
                 {
-                    file->create(*file_name);
+                    std::istreambuf_iterator<char> start(&_buffer);
+                    std::istreambuf_iterator<char> end;
+
+                    file->create(std::string(start, end));
+
                     read_batch(file);
                 });
         });
@@ -52,22 +51,16 @@ void Session::read_file_name(std::shared_ptr<FileHandler> file)
 
 void Session::read_batch(std::shared_ptr<FileHandler> file)
 {
-    std::shared_ptr<size_t> batch_size = std::make_shared<size_t>(0);
-
-    read_async(
-        batch_size.get(),
-        sizeof(*batch_size),
-        [this, file, batch_size]
+    read_size_async(
+        [this, file]
         {
-            std::shared_ptr<std::vector<char>> batch = std::make_shared<std::vector<char>>(*batch_size);
+            size_t size = read_size_from_buffer();
 
-            read_async(
-                batch.get()->data(),
-                *batch_size,
-                [this, file, batch_size, batch]
+            read_data_async(
+                size,
+                [this, file, size]
                 {
-                    file->write(batch.get()->data(), *batch_size);
-
+                    file->write(_buffer, size);
                     if (file->get_bytes_to_write() > 0)
                     {
                         read_batch(file);
@@ -80,15 +73,28 @@ void Session::read_batch(std::shared_ptr<FileHandler> file)
         });
 }
 
+size_t Session::read_size_from_buffer()
+{
+    size_t size = 0;
+
+    std::istream is(&_buffer);
+    is.read(reinterpret_cast<char*>(&size), sizeof(size));
+
+    return size;
+}
+
 void Session::handle_error(const boost::system::error_code& error)
 {
     if (error == boost::asio::error::eof)
     {
         Logger::info("Client disconnected: " + std::to_string(_client_id));
     }
-
-    if (error == boost::asio::error::connection_reset)
+    else if (error == boost::asio::error::connection_reset)
     {
         Logger::error("The connection was reset by the remote side: " + std::to_string(_client_id));
+    }
+    else
+    {
+        Logger::error("An unknown error occurred: " + std::to_string(_client_id));
     }
 }
