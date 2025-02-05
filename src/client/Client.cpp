@@ -1,8 +1,5 @@
 #include "Client.h"
 
-#include <cstddef>
-#include <utility>
-
 #include "../utils/Logger.h"
 
 Client::Client(unsigned short port, std::string host)

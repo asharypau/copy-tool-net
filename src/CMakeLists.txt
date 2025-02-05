@@ -5,7 +5,7 @@ add_executable(
     utils/CmdArgsParser.cpp
     server/Server.cpp
     server/Session.cpp
-    server/FileWriter.cpp
+    server/FileHandler.cpp
     client/Client.cpp
     client/TcpClient.cpp
     client/FileReader.cpp

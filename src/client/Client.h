@@ -1,7 +1,6 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <cstddef>
 #include <string>
 
 #include "../common/IApplication.h"

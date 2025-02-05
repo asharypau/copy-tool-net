@@ -2,13 +2,9 @@
 #define SESSION_H
 
 #include <boost/asio.hpp>
-#include <cstddef>
-#include <memory>
-#include <utility>
-#include <vector>
 
-#include "FileWriter.h"
-#include "boost/asio/read.hpp"
+#include "../utils/Logger.h"
+#include "FileHandler.h"
 
 class Session : public std::enable_shared_from_this<Session>
 {
@@ -19,10 +15,8 @@ public:
 
 private:
     void read_file_size();
-    void read_file_name_size();
-    void read_file_name(size_t file_name_size);
-    void read_batch_size();
-    void read_batch();
+    void read_file_name(std::shared_ptr<FileHandler> file);
+    void read_batch(std::shared_ptr<FileHandler> file);
     void handle_error(const boost::system::error_code& error);
 
     template <class TData, class THandler>
@@ -34,25 +28,26 @@ private:
             boost::asio::buffer(data, size_in_bytes),
             [self, handle = std::forward<THandler>(handle)](const boost::system::error_code& error, size_t read_bytes)
             {
-                if (error)
+                try
                 {
-                    self->handle_error(error);
+                    if (error)
+                    {
+                        self->handle_error(error);
+                    }
+                    else
+                    {
+                        handle();
+                    }
                 }
-                else
+                catch (const std::exception& ex)
                 {
-                    handle();
+                    Logger::error("Error occurred: " + std::string(ex.what()));
                 }
             });
     }
 
     size_t _client_id;
     boost::asio::ip::tcp::socket _socket;
-
-    size_t _file_size;
-    FileWriter _file;
-
-    size_t _batch_size;
-    std::vector<char> _batch;
 };
 
 #endif  // SESSION_H
