@@ -1,8 +1,6 @@
 #include "FileHandler.h"
 
 #include <filesystem>
-#include <istream>
-#include <vector>
 
 FileHandler::FileHandler(size_t bytes_to_write)
     : _bytes_to_write(bytes_to_write)
@@ -22,13 +20,12 @@ void FileHandler::create(const std::string& file_name)
 
 void FileHandler::write(boost::asio::streambuf& buffer, size_t size)
 {
-    std::istream is(&buffer);
-    std::vector<char> temp(size);
-    is.read(temp.data(), size);
+    const char* raw_data = boost::asio::buffer_cast<const char*>(buffer.data());
+    _file.write(raw_data, size);
 
-    _file.write(temp.data(), size);
     if (_file.good())
     {
+        buffer.consume(size);
         _bytes_to_write -= size;
     }
 }

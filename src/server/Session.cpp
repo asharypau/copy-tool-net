@@ -1,5 +1,6 @@
 #include "Session.h"
 
+#include <cstddef>
 #include <string>
 
 Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
@@ -75,12 +76,10 @@ void Session::read_batch(std::shared_ptr<FileHandler> file)
 
 size_t Session::read_size_from_buffer()
 {
-    size_t size = 0;
+    const size_t* raw_data = boost::asio::buffer_cast<const size_t*>(_buffer.data());
+    _buffer.consume(sizeof(*raw_data));
 
-    std::istream is(&_buffer);
-    is.read(reinterpret_cast<char*>(&size), sizeof(size));
-
-    return size;
+    return *raw_data;
 }
 
 void Session::handle_error(const boost::system::error_code& error)
