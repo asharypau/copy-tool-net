@@ -63,8 +63,8 @@ void Client::write_file_name(const std::string& name)
 
     std::vector<char> buffer(buffer_offset + name_size);
 
-    std::memcpy(buffer.data(), &name_size, buffer_offset);
-    std::memcpy(&buffer[buffer_offset], name.data(), name_size);
+    std::memcpy(buffer.data(), &name_size, buffer_offset);        // write a size of name into the buffer
+    std::memcpy(&buffer[buffer_offset], name.data(), name_size);  // write a name into the buffer
 
     _tcp_client.write(buffer.data(), buffer_offset + name_size);
 }
@@ -84,7 +84,7 @@ void Client::write_file(FileReader& file)
             break;
         }
 
-        std::memcpy(buffer.data(), &bytes_read, buffer_offset);
+        std::memcpy(buffer.data(), &bytes_read, buffer_offset);  // write batch size into the buffer
 
         _tcp_client.write(buffer.data(), buffer_offset + bytes_read);
     }
