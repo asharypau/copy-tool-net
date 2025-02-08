@@ -17,10 +17,10 @@ public:
     void handle(std::vector<Message>& messages);
 
 private:
-    void send_header(Message message);
+    void send_headers(Message message);
     void send_file(std::unique_ptr<FileReader>&& file_reader);
 
-    static constexpr size_t OFFSET = sizeof(size_t);
+    static constexpr size_t HEADER_SIZE = sizeof(size_t);
     static constexpr size_t BATCH_SIZE = 1024 * 1024;
 
     TcpClient& _tcp_client;

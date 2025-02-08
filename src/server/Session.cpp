@@ -1,6 +1,5 @@
 #include "Session.h"
 
-#include <cstddef>
 #include <string>
 
 Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
@@ -14,72 +13,64 @@ void Session::run()
 {
     Logger::info("Client connected: " + std::to_string(_client_id));
 
-    read_file_size();
+    get_headers();
 }
 
-void Session::read_file_size()
+void Session::get_headers()
 {
-    get_size(
+    get_async(
+        HEADER_SIZE,
         [this]
         {
-            size_t size = read_size_from_buffer();
-            std::shared_ptr<FileHandler> file = std::make_shared<FileHandler>(size);
+            size_t file_size = get_from_buffer<size_t>();
 
-            read_file_name(file);
+            get(HEADER_SIZE);
+            size_t file_name_size = get_from_buffer<size_t>();
+
+            get(file_name_size);
+            std::string str(file_name_size, '\0');
+            extract(str.data(), file_name_size);
+
+            std::istreambuf_iterator<char> start(&_buffer);
+            std::istreambuf_iterator<char> end;
+            std::string file_name(start, end);
+
+            std::shared_ptr<FileHandler> file = std::make_shared<FileHandler>(file_size);
+            file->create(file_name);
+
+            get_file(file);
         });
 }
 
-void Session::read_file_name(std::shared_ptr<FileHandler> file)
+void Session::get_file(std::shared_ptr<FileHandler> file_handler)
 {
-    get_size(
-        [this, file]
+    get_async(
+        HEADER_SIZE,
+        [this, file_handler]
         {
-            size_t size = read_size_from_buffer();
+            size_t batch_size = get_from_buffer<size_t>();
 
-            get_data(
-                size,
-                [this, file, size]
+            get_async(
+                batch_size,
+                [this, file_handler, batch_size]
                 {
-                    std::istreambuf_iterator<char> start(&_buffer);
-                    std::istreambuf_iterator<char> end;
-
-                    file->create(std::string(start, end));
-
-                    read_batch(file);
-                });
-        });
-}
-
-void Session::read_batch(std::shared_ptr<FileHandler> file)
-{
-    get_size(
-        [this, file]
-        {
-            size_t size = read_size_from_buffer();
-
-            get_data(
-                size,
-                [this, file, size]
-                {
-                    file->write(_buffer, size);
-                    if (file->get_bytes_to_write() > 0)
+                    file_handler->write(_buffer, batch_size);
+                    if (file_handler->get_bytes_to_write() > 0)
                     {
-                        read_batch(file);
+                        get_file(file_handler);
                     }
                     else
                     {
-                        read_file_size();
+                        get_headers();
                     }
                 });
         });
 }
 
-size_t Session::read_size_from_buffer()
+void Session::get(size_t size_in_bytes)
 {
-    const size_t* raw_data = boost::asio::buffer_cast<const size_t*>(_buffer.data());
-    _buffer.consume(sizeof(*raw_data));
-
-    return *raw_data;
+    boost::system::error_code error;
+    size_t read_bytes = boost::asio::read(_socket, _buffer, boost::asio::transfer_exactly(size_in_bytes), error);
 }
 
 void Session::handle_error(const boost::system::error_code& error)

@@ -6,7 +6,7 @@ MessageQueueHandler::MessageQueueHandler(TcpClient& tcp_client)
     : _tcp_client(tcp_client),
       _messages(),
       _header_buffer(),
-      _data_buffer(OFFSET + BATCH_SIZE),
+      _data_buffer(HEADER_SIZE + BATCH_SIZE),
       _mtx(),
       _in_progress(false)
 {
@@ -23,18 +23,18 @@ void MessageQueueHandler::handle(std::vector<Message>& messages)
     if (!_in_progress)
     {
         _in_progress = true;
-        send_header(_messages.front());
+        send_headers(_messages.front());
     }
 }
 
-void MessageQueueHandler::send_header(Message message)
+void MessageQueueHandler::send_headers(Message message)
 {
     size_t file_name_size = message.name.size();
 
-    _header_buffer.resize(OFFSET + OFFSET + file_name_size);
-    std::memcpy(_header_buffer.data(), &message.size, OFFSET);                                  // write a file_reader size into the buffer at index 0
-    std::memcpy(_header_buffer.data() + OFFSET, &file_name_size, OFFSET);                       // write a file_reader name size into the buffer at index 0 + SIZE
-    std::memcpy(_header_buffer.data() + OFFSET + OFFSET, message.name.data(), file_name_size);  // write a name into the buffer at index 0 + SIZE + SIZE
+    _header_buffer.resize(HEADER_SIZE * 2 + file_name_size);
+    std::memcpy(_header_buffer.data(), &message.size, HEADER_SIZE);                             // write a file_reader size into the buffer at index 0
+    std::memcpy(_header_buffer.data() + HEADER_SIZE, &file_name_size, HEADER_SIZE);             // write a file_reader name size into the buffer at index 0 + SIZE
+    std::memcpy(_header_buffer.data() + HEADER_SIZE * 2, message.name.data(), file_name_size);  // write a name into the buffer at index 0 + SIZE + SIZE
 
     _tcp_client.write(
         _header_buffer.data(),
@@ -47,14 +47,14 @@ void MessageQueueHandler::send_header(Message message)
 
 void MessageQueueHandler::send_file(std::unique_ptr<FileReader>&& file_reader)
 {
-    size_t bytes_read = file_reader->read(_data_buffer.data() + OFFSET, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
+    size_t bytes_read = file_reader->read(_data_buffer.data() + HEADER_SIZE, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
     if (bytes_read > 0)
     {
-        std::memcpy(_data_buffer.data(), &bytes_read, OFFSET);  // write batch size into the buffer at index 0
+        std::memcpy(_data_buffer.data(), &bytes_read, HEADER_SIZE);  // write batch size into the buffer at index 0
 
         _tcp_client.write(
             _data_buffer.data(),
-            bytes_read + OFFSET,
+            bytes_read + HEADER_SIZE,
             [this, file_reader = std::move(file_reader)]() mutable
             {
                 send_file(std::move(file_reader));
@@ -73,7 +73,7 @@ void MessageQueueHandler::send_file(std::unique_ptr<FileReader>&& file_reader)
         if (!_messages.empty())
         {
             _in_progress = true;
-            send_header(_messages.front());
+            send_headers(_messages.front());
         }
     }
 }
