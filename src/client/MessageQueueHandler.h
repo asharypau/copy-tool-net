@@ -1,7 +1,8 @@
 #ifndef MESSAGE_QUEUE_HANDLER_H
 #define MESSAGE_QUEUE_HANDLER_H
 
-#include <deque>
+#include <mutex>
+#include <queue>
 #include <vector>
 
 #include "../models/Message.h"
@@ -16,16 +17,17 @@ public:
     void handle(std::vector<Message>& messages);
 
 private:
-    void send_header();
+    void send_header(Message message);
     void send_file(std::unique_ptr<FileReader>&& file_reader);
 
     static constexpr size_t OFFSET = sizeof(size_t);
     static constexpr size_t BATCH_SIZE = 1024 * 1024;
 
     TcpClient& _tcp_client;
-    std::deque<Message> _messages;
+    std::queue<Message> _messages;
     std::vector<char> _header_buffer;
     std::vector<char> _data_buffer;
+    std::mutex _mtx;
     bool _in_progress;
 };
 
