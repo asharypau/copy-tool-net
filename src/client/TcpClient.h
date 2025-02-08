@@ -3,12 +3,15 @@
 
 #include <boost/asio.hpp>
 #include <string>
+#include <utility>
+
+#include "../utils/Logger.h"
 
 class TcpClient
 {
 public:
-    TcpClient();
-    TcpClient(TcpClient&&) noexcept;
+    explicit TcpClient(boost::asio::io_context& context, unsigned short port, std::string host);
+    TcpClient(TcpClient&& other) noexcept;
     ~TcpClient();
 
     TcpClient& operator=(TcpClient&& other) noexcept;
@@ -17,42 +20,66 @@ public:
     TcpClient(const TcpClient&) = delete;
     TcpClient& operator=(const TcpClient&) = delete;
 
-    /**
-     * @brief Establishes a connection to the specified host and port.
-     *
-     * This method attempts to connect to a remote server using the provided
-     * hostname and port number. If the connection is successful, the client
-     * will be able to send and receive data over the network.
-     *
-     * @param host The hostname or IP address of the remote server.
-     * @param port The port number on the remote server to connect to.
-     */
-    void connect(unsigned short port, const std::string& host);
-
-    /**
-     * @brief Writes data to the connected socket.
-     *
-     * This template method sends the specified data over the network to the
-     * connected remote server. The data is sent as a raw byte stream.
-     *
-     * @tparam TData The type of the data to be written.
-     * @param data A pointer to the data to be written.
-     * @param size_in_bytes The size of the data to be written, in bytes.
-     */
-    template <class TData>
-    void write(TData* data, size_t size_in_bytes)
+    template <class TCallback>
+    void connect(TCallback&& callback)
     {
-        boost::system::error_code error;
-        size_t read_bytes = boost::asio::write(_socket, boost::asio::buffer(data, size_in_bytes), error);
+        boost::asio::ip::tcp::resolver resolver(_socket.get_executor());
+        boost::asio::ip::tcp::resolver::results_type endpoint = resolver.resolve(_host, std::to_string(_port));
 
-        validate_result(error, size_in_bytes, read_bytes);
+        if (endpoint.empty())
+        {
+            Logger::error("Failed to resolve endpoint.");
+
+            return;
+        }
+
+        boost::asio::async_connect(
+            _socket,
+            endpoint,
+            [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, boost::asio::ip::tcp::endpoint)
+            {
+                if (error)
+                {
+                    Logger::error("Error during connect");
+                    return;
+                }
+
+                try
+                {
+                    Logger::info("Connected by " + _host + ":" + std::to_string(_port));
+
+                    callback();
+                }
+                catch (const std::exception& ex)
+                {
+                    Logger::error("Error occurred: " + std::string(ex.what()));
+                }
+            });
+    }
+
+    template <class TData, class TCallback>
+    void write(TData* data, size_t size_in_bytes, TCallback&& callback)
+    {
+        boost::asio::async_write(
+            _socket,
+            boost::asio::buffer(data, size_in_bytes),
+            [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes) mutable
+            {
+                try
+                {
+                    callback();
+                }
+                catch (const std::exception& ex)
+                {
+                    Logger::error("Error occurred: " + std::string(ex.what()));
+                }
+            });
     }
 
 private:
-    void validate_result(boost::system::error_code& error, size_t size_in_bytes, size_t read_bytes);
-
-    boost::asio::io_context _context;
     boost::asio::ip::tcp::socket _socket;
+    unsigned short _port;
+    std::string _host;
 };
 
 #endif  // TCP_CLIENT_H

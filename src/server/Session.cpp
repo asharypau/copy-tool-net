@@ -10,7 +10,7 @@ Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
 {
 }
 
-void Session::start()
+void Session::run()
 {
     Logger::info("Client connected: " + std::to_string(_client_id));
 
@@ -19,7 +19,7 @@ void Session::start()
 
 void Session::read_file_size()
 {
-    read_size_async(
+    get_size(
         [this]
         {
             size_t size = read_size_from_buffer();
@@ -31,12 +31,12 @@ void Session::read_file_size()
 
 void Session::read_file_name(std::shared_ptr<FileHandler> file)
 {
-    read_size_async(
+    get_size(
         [this, file]
         {
             size_t size = read_size_from_buffer();
 
-            read_data_async(
+            get_data(
                 size,
                 [this, file, size]
                 {
@@ -52,12 +52,12 @@ void Session::read_file_name(std::shared_ptr<FileHandler> file)
 
 void Session::read_batch(std::shared_ptr<FileHandler> file)
 {
-    read_size_async(
+    get_size(
         [this, file]
         {
             size_t size = read_size_from_buffer();
 
-            read_data_async(
+            get_data(
                 size,
                 [this, file, size]
                 {

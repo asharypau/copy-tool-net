@@ -9,7 +9,8 @@ add_executable(
     client/Client.cpp
     client/TcpClient.cpp
     client/FileReader.cpp
-    client/FilePathPrompt.cpp
+    client/MessagesPrompt.cpp
+    client/MessageQueueHandler.cpp
 )
 
 target_link_libraries(CopyToolNet PRIVATE Boost::asio)

@@ -36,7 +36,7 @@ void Server::accept()
             if (!error)
             {
                 ++_client_id;
-                std::make_shared<Session>(std::move(socket), _client_id)->start();
+                std::make_shared<Session>(std::move(socket), _client_id)->run();
             }
 
             accept();  // wait for another connection

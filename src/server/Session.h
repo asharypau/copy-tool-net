@@ -12,7 +12,7 @@ class Session : public std::enable_shared_from_this<Session>
 public:
     Session(boost::asio::ip::tcp::socket socket, size_t client_id);
 
-    void start();
+    void run();
 
 private:
     /**
@@ -73,10 +73,10 @@ private:
     size_t read_size_from_buffer();
     void handle_error(const boost::system::error_code& error);
 
-    template <class THandler>
-    void read_size_async(THandler&& handle)
+    template <class TCallback>
+    void get_size(TCallback&& callback)
     {
-        read_data_async(sizeof(size_t), std::forward<THandler>(handle));
+        get_data(sizeof(size_t), std::forward<TCallback>(callback));
     }
 
     /**
@@ -95,15 +95,15 @@ private:
      * @param size_in_bytes The exact number of bytes to read from the socket.
      * @param handle A callable object (e.g., lambda function) that is executed upon successful reading.
      */
-    template <class THandler>
-    void read_data_async(size_t size_in_bytes, THandler&& handle)
+    template <class TCallback>
+    void get_data(size_t size_in_bytes, TCallback&& callback)
     {
         std::shared_ptr<Session> self = shared_from_this();
         boost::asio::async_read(
             _socket,
             _buffer,
             boost::asio::transfer_exactly(size_in_bytes),
-            [self, handle = std::forward<THandler>(handle)](const boost::system::error_code& error, size_t read_bytes)
+            [self, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes)
             {
                 try
                 {
@@ -113,7 +113,7 @@ private:
                     }
                     else
                     {
-                        handle();
+                        callback();
                     }
                 }
                 catch (const std::exception& ex)

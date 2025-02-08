@@ -1,21 +1,20 @@
-#include "FilePathPrompt.h"
+#include "MessagesPrompt.h"
 
 #include <filesystem>
 #include <iostream>
 #include <sstream>
-#include <string>
 
 #include "../models/Colors.h"
 
-std::vector<std::pair<std::string, std::string>> FilePathPrompt::get()
+std::vector<Message> MessagesPrompt::get()
 {
     std::cout << std::endl
               << Colors::WHITE
               << "====================================================================================================================================================="
               << Colors::RESET << std::endl;
 
-    std::vector<std::pair<std::string, std::string>> result = internal_get();
-    if (result.empty())
+    std::vector<Message> messages = internal_get();
+    if (messages.empty())
     {
         std::cout << Colors::RED << "No files to send. " << Colors::RESET << "Do you want to try again? (Y/N): ";
 
@@ -25,16 +24,16 @@ std::vector<std::pair<std::string, std::string>> FilePathPrompt::get()
 
         if (choice == 'y' || choice == 'Y')
         {
-            result = internal_get();
+            messages = internal_get();
         }
     }
     else
     {
         std::cout << Colors::GREEN << "Files to send: " << Colors::RESET << std::endl;
 
-        for (int i = 0; i < result.size(); ++i)
+        for (int i = 0; i < messages.size(); ++i)
         {
-            std::cout << i + 1 << ". " << result[i].first << ':' << result[i].second << std::endl;
+            std::cout << i + 1 << ". " << messages[i].name << ':' << messages[i].path << std::endl;
         }
     }
 
@@ -43,10 +42,10 @@ std::vector<std::pair<std::string, std::string>> FilePathPrompt::get()
               << Colors::RESET
               << std::endl;
 
-    return std::move(result);
+    return std::move(messages);
 }
 
-std::vector<std::pair<std::string, std::string>> FilePathPrompt::internal_get()
+std::vector<Message> MessagesPrompt::internal_get()
 {
     std::cout << Colors::WHITE << "Enter one or more files to send. Input format " << Colors::YELLOW << "filename:filepath: " << Colors::RESET;
 
@@ -54,30 +53,30 @@ std::vector<std::pair<std::string, std::string>> FilePathPrompt::internal_get()
     std::getline(std::cin, input);
 
     std::istringstream ss(input);
-    std::vector<std::pair<std::string, std::string>> files_data;
-    std::string file_data;
+    std::vector<Message> messages;
+    std::string message;
 
-    while (ss >> file_data)
+    while (ss >> message)
     {
-        size_t delimiter_pos = file_data.find(':');
+        size_t delimiter_pos = message.find(':');
         if (delimiter_pos == std::string::npos)
         {
-            std::cout << Colors::RED << "Incorrect format: " << Colors::RESET << file_data << std::endl;
+            std::cout << Colors::RED << "Incorrect format: " << Colors::RESET << message << std::endl;
             continue;
         }
 
-        std::string name = file_data.substr(0, delimiter_pos);
-        std::string path = file_data.substr(delimiter_pos + 1, file_data.size());
+        std::string name = message.substr(0, delimiter_pos);
+        std::string path = message.substr(delimiter_pos + 1, message.size());
 
         if (std::filesystem::exists(path))
         {
-            files_data.emplace_back(name, path);
+            messages.emplace_back(std::filesystem::file_size(path), name, path);
         }
         else
         {
-            std::cout << Colors::RED << "File does not exist: " << Colors::RESET << file_data << std::endl;
+            std::cout << Colors::RED << "File does not exist: " << Colors::RESET << message << std::endl;
         }
     }
 
-    return std::move(files_data);
+    return std::move(messages);
 }
