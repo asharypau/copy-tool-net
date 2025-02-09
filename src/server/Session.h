@@ -16,7 +16,7 @@ public:
 
 private:
     void get_headers();
-    void get_file(std::shared_ptr<FileHandler> file_handler);
+    void get_file(std::unique_ptr<FileHandler>&& file);
 
     static constexpr size_t HEADER_SIZE = sizeof(size_t);
 

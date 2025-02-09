@@ -144,7 +144,7 @@ namespace Tcp
                 _socket,
                 _buffer,
                 boost::asio::transfer_exactly(size_in_bytes),
-                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes)
+                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes) mutable
                 {
                     try
                     {

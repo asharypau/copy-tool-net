@@ -8,10 +8,17 @@
 class FileHandler
 {
 public:
-    explicit FileHandler(size_t bytes_to_write);
+    explicit FileHandler(size_t bytes_to_write, const std::string& name);
+
+    FileHandler(FileHandler&& other) noexcept;
+    FileHandler& operator=(FileHandler&& other) noexcept;
+
     ~FileHandler();
 
-    void create(const std::string& file_name);
+    // Disallow copying and assignment.
+    FileHandler(const FileHandler&) = delete;
+    FileHandler& operator=(const FileHandler&) = delete;
+
     void write(char* data, size_t size);
 
     size_t get_bytes_to_write() const noexcept

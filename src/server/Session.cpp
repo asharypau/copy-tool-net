@@ -1,6 +1,8 @@
 #include "Session.h"
 
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
@@ -36,35 +38,32 @@ void Session::get_headers()
             std::string file_name(file_name_size, '\0');
             _tcp_reader.extract(file_name.data(), file_name_size);
 
-            std::shared_ptr<FileHandler> file = std::make_shared<FileHandler>(file_size);
-            file->create(file_name);
-
-            get_file(file);
+            get_file(std::make_unique<FileHandler>(file_size, file_name));
         });
 }
 
-void Session::get_file(std::shared_ptr<FileHandler> file_handler)
+void Session::get_file(std::unique_ptr<FileHandler>&& file)
 {
     std::shared_ptr<Session> self = shared_from_this();
 
     _tcp_reader.read_async(
         HEADER_SIZE,
-        [this, self, file_handler]
+        [this, self, file = std::move(file)]() mutable
         {
             size_t batch_size = 0;
             _tcp_reader.extract(&batch_size, HEADER_SIZE);
 
             _tcp_reader.read_async(
                 batch_size,
-                [this, self, file_handler, batch_size]
+                [this, self, file = std::move(file), batch_size]() mutable
                 {
                     std::vector<char> data(batch_size);
                     _tcp_reader.extract(data.data(), batch_size);
-                    file_handler->write(data.data(), batch_size);
+                    file->write(data.data(), batch_size);
 
-                    if (file_handler->get_bytes_to_write() > 0)
+                    if (file->get_bytes_to_write() > 0)
                     {
-                        get_file(file_handler);
+                        get_file(std::move(file));
                     }
                     else
                     {
