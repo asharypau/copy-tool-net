@@ -5,14 +5,14 @@
 #include <queue>
 #include <vector>
 
-#include "../common/TcpWriter.h"
+#include "../common/Tcp.h"
 #include "../models/Message.h"
 #include "FileReader.h"
 
 class MessageQueueHandler
 {
 public:
-    explicit MessageQueueHandler(TcpWriter& tcp_writer);
+    explicit MessageQueueHandler(Tcp::Writer tcp_writer);
 
     void handle(std::vector<Message>& messages);
 
@@ -27,7 +27,7 @@ private:
     std::vector<char> _header_buffer;
     std::vector<char> _data_buffer;
     std::mutex _mtx;
-    TcpWriter& _tcp_writer;
+    Tcp::Writer _tcp_writer;
     bool _in_progress;
 };
 

@@ -33,7 +33,7 @@ std::vector<Message> MessagesPrompt::get()
 
         for (int i = 0; i < messages.size(); ++i)
         {
-            std::cout << i + 1 << ". " << messages[i].name << ':' << messages[i].path << std::endl;
+            std::cout << i + 1 << ". " << messages[i].name << ':' << messages[i].path << " (" + std::to_string(messages[i].size) << " bytes)" << std::endl;
         }
     }
 

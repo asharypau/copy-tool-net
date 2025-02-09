@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <memory>
 
-#include "../common/TcpReader.h"
+#include "../common/Tcp.h"
 #include "FileHandler.h"
 
 class Session : public std::enable_shared_from_this<Session>
@@ -21,7 +21,7 @@ private:
     static constexpr size_t HEADER_SIZE = sizeof(size_t);
 
     boost::asio::ip::tcp::socket _socket;
-    TcpReader _tcp_reader;
+    Tcp::Reader _tcp_reader;
     size_t _client_id;
 };
 

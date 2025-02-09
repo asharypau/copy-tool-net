@@ -1,5 +1,5 @@
-#ifndef FILE_PATH_PROMPT_H
-#define FILE_PATH_PROMPT_H
+#ifndef MESSAGES_PROMPT_H
+#define MESSAGES_PROMPT_H
 
 #include <vector>
 
@@ -14,4 +14,4 @@ private:
     std::vector<Message> internal_get();
 };
 
-#endif  // FILE_PATH_PROMPT_H
+#endif  // MESSAGES_PROMPT_H

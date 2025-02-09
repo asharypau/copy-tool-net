@@ -7,7 +7,6 @@
 #include "../common/IApplication.h"
 #include "MessageQueueHandler.h"
 #include "MessagesPrompt.h"
-#include "TcpClient.h"
 
 class Client : public IApplication
 {
@@ -20,9 +19,11 @@ private:
     void run_user_thread();
 
     boost::asio::io_context _context;
-    TcpClient _tcp_client;
+    boost::asio::ip::tcp::socket _socket;
     MessageQueueHandler _message_queue_handler;
     MessagesPrompt _messages_prompt;
+    unsigned short _port;
+    std::string _host;
 };
 
 #endif  // CLIENT_H

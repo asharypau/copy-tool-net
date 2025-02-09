@@ -2,13 +2,16 @@
 
 #include <thread>
 
+#include "../common/Tcp.h"
 #include "../utils/Logger.h"
 
 Client::Client(unsigned short port, std::string host)
     : _context(),
-      _tcp_client(_context, port, host),
-      _message_queue_handler(_tcp_client.get_writer()),
-      _messages_prompt()
+      _socket(_context),
+      _message_queue_handler(Tcp::Writer(_socket)),
+      _messages_prompt(),
+      _port(port),
+      _host(host)
 {
 }
 
@@ -16,7 +19,10 @@ void Client::run()
 {
     Logger::info("Client started");
 
-    _tcp_client.connect(
+    Tcp::Connector::connect(
+        _port,
+        _host,
+        _socket,
         [this]
         {
             run_user_thread();

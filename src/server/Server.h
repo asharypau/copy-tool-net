@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 
 #include "../common/IApplication.h"
+#include "../common/Tcp.h"
 
 class Server : public IApplication
 {
@@ -25,7 +26,7 @@ private:
     static size_t _client_id;
 
     boost::asio::io_context _context;
-    boost::asio::ip::tcp::acceptor _acceptor;
+    Tcp::Acceptor _acceptor;
 };
 
 #endif  // SERVER_H

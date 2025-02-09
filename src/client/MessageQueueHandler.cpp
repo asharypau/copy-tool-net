@@ -2,7 +2,7 @@
 
 #include <string>
 
-MessageQueueHandler::MessageQueueHandler(TcpWriter& tcp_writer)
+MessageQueueHandler::MessageQueueHandler(Tcp::Writer tcp_writer)
     : _tcp_writer(tcp_writer),
       _messages(),
       _header_buffer(),
@@ -15,6 +15,7 @@ MessageQueueHandler::MessageQueueHandler(TcpWriter& tcp_writer)
 void MessageQueueHandler::handle(std::vector<Message>& messages)
 {
     std::unique_lock<std::mutex> lock(_mtx);
+
     for (const Message& message : messages)
     {
         _messages.push(std::move(message));
@@ -62,9 +63,6 @@ void MessageQueueHandler::send_file(std::unique_ptr<FileReader>&& file_reader)
     }
     else
     {
-        //  Message& file_info = _messages.front();
-        // Logger::info("File sent: " + file_info.name + " (" + std::to_string(file_info.size) + " bytes)");
-
         std::unique_lock<std::mutex> lock(_mtx);
 
         _messages.pop();
