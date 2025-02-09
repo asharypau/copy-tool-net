@@ -1,7 +1,6 @@
 #ifndef FILE_HANDLER_H
 #define FILE_HANDLER_H
 
-#include <boost/asio.hpp>
 #include <fstream>
 #include <string>
 #include <string_view>
@@ -13,7 +12,7 @@ public:
     ~FileHandler();
 
     void create(const std::string& file_name);
-    void write(boost::asio::streambuf& buffer, size_t size);
+    void write(char* data, size_t size);
 
     size_t get_bytes_to_write() const noexcept
     {

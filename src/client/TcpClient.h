@@ -5,20 +5,26 @@
 #include <string>
 #include <utility>
 
+#include "../common/TcpWriter.h"
 #include "../utils/Logger.h"
 
 class TcpClient
 {
 public:
     explicit TcpClient(boost::asio::io_context& context, unsigned short port, std::string host);
-    TcpClient(TcpClient&& other) noexcept;
     ~TcpClient();
 
-    TcpClient& operator=(TcpClient&& other) noexcept;
+    TcpClient(TcpClient&& other) noexcept;
 
     // Disallow copying and assignment.
     TcpClient(const TcpClient&) = delete;
     TcpClient& operator=(const TcpClient&) = delete;
+    TcpClient& operator=(TcpClient&& other) = delete;
+
+    TcpWriter& get_writer() noexcept
+    {
+        return _tcp_writer;
+    }
 
     template <class TCallback>
     void connect(TCallback&& callback)
@@ -57,27 +63,9 @@ public:
             });
     }
 
-    template <class TData, class TCallback>
-    void write(TData* data, size_t size_in_bytes, TCallback&& callback)
-    {
-        boost::asio::async_write(
-            _socket,
-            boost::asio::buffer(data, size_in_bytes),
-            [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes) mutable
-            {
-                try
-                {
-                    callback();
-                }
-                catch (const std::exception& ex)
-                {
-                    Logger::error("Error occurred: " + std::string(ex.what()));
-                }
-            });
-    }
-
 private:
     boost::asio::ip::tcp::socket _socket;
+    TcpWriter _tcp_writer;
     unsigned short _port;
     std::string _host;
 };

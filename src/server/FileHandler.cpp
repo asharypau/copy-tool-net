@@ -18,14 +18,12 @@ void FileHandler::create(const std::string& file_name)
     _file.open(path, std::ios::binary);
 }
 
-void FileHandler::write(boost::asio::streambuf& buffer, size_t size)
+void FileHandler::write(char* data, size_t size)
 {
-    const char* raw_data = boost::asio::buffer_cast<const char*>(buffer.data());
-    _file.write(raw_data, size);
+    _file.write(data, size);
 
     if (_file.good())
     {
-        buffer.consume(size);
         _bytes_to_write -= size;
     }
 }

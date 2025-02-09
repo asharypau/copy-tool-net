@@ -2,8 +2,8 @@
 
 #include <string>
 
-MessageQueueHandler::MessageQueueHandler(TcpClient& tcp_client)
-    : _tcp_client(tcp_client),
+MessageQueueHandler::MessageQueueHandler(TcpWriter& tcp_writer)
+    : _tcp_writer(tcp_writer),
       _messages(),
       _header_buffer(),
       _data_buffer(HEADER_SIZE + BATCH_SIZE),
@@ -36,7 +36,7 @@ void MessageQueueHandler::send_headers(Message message)
     std::memcpy(_header_buffer.data() + HEADER_SIZE, &file_name_size, HEADER_SIZE);             // write a file_reader name size into the buffer at index 0 + SIZE
     std::memcpy(_header_buffer.data() + HEADER_SIZE * 2, message.name.data(), file_name_size);  // write a name into the buffer at index 0 + SIZE + SIZE
 
-    _tcp_client.write(
+    _tcp_writer.write(
         _header_buffer.data(),
         _header_buffer.size(),
         [this, message]
@@ -52,7 +52,7 @@ void MessageQueueHandler::send_file(std::unique_ptr<FileReader>&& file_reader)
     {
         std::memcpy(_data_buffer.data(), &bytes_read, HEADER_SIZE);  // write batch size into the buffer at index 0
 
-        _tcp_client.write(
+        _tcp_writer.write(
             _data_buffer.data(),
             bytes_read + HEADER_SIZE,
             [this, file_reader = std::move(file_reader)]() mutable

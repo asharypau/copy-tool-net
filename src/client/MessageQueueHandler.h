@@ -5,14 +5,14 @@
 #include <queue>
 #include <vector>
 
+#include "../common/TcpWriter.h"
 #include "../models/Message.h"
 #include "FileReader.h"
-#include "TcpClient.h"
 
 class MessageQueueHandler
 {
 public:
-    explicit MessageQueueHandler(TcpClient& tcp_client);
+    explicit MessageQueueHandler(TcpWriter& tcp_writer);
 
     void handle(std::vector<Message>& messages);
 
@@ -23,11 +23,11 @@ private:
     static constexpr size_t HEADER_SIZE = sizeof(size_t);
     static constexpr size_t BATCH_SIZE = 1024 * 1024;
 
-    TcpClient& _tcp_client;
     std::queue<Message> _messages;
     std::vector<char> _header_buffer;
     std::vector<char> _data_buffer;
     std::mutex _mtx;
+    TcpWriter& _tcp_writer;
     bool _in_progress;
 };
 

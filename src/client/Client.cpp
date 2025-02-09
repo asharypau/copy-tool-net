@@ -7,7 +7,7 @@
 Client::Client(unsigned short port, std::string host)
     : _context(),
       _tcp_client(_context, port, host),
-      _message_queue_handler(_tcp_client),
+      _message_queue_handler(_tcp_client.get_writer()),
       _messages_prompt()
 {
 }
