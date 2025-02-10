@@ -1,17 +1,19 @@
-#include "Server.h"
+#include "Startup.h"
 
 #include "../utils/Logger.h"
 #include "Session.h"
 
-size_t Server::_client_id = 0;
+using namespace Server;
 
-Server::Server(unsigned short port)
+size_t Startup::_client_id = 0;
+
+Startup::Startup(unsigned short port)
     : _context(),
       _acceptor(port, _context)
 {
 }
 
-void Server::run()
+void Startup::run()
 {
     try
     {
@@ -28,7 +30,7 @@ void Server::run()
     }
 }
 
-void Server::accept()
+void Startup::accept()
 {
     _acceptor.accept(
         [this](boost::asio::ip::tcp::socket socket)

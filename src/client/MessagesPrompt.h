@@ -1,17 +1,20 @@
-#ifndef MESSAGES_PROMPT_H
-#define MESSAGES_PROMPT_H
+#ifndef CLIENT_MESSAGES_PROMPT_H
+#define CLIENT_MESSAGES_PROMPT_H
 
 #include <vector>
 
 #include "../models/Message.h"
-
-class MessagesPrompt
+namespace Client
 {
-public:
-    std::vector<Message> get();
 
-private:
-    std::vector<Message> internal_get();
-};
+    class MessagesPrompt
+    {
+    public:
+        std::vector<Message> get();
 
-#endif  // MESSAGES_PROMPT_H
+    private:
+        std::vector<Message> internal_get();
+    };
+}
+
+#endif  // CLIENT_MESSAGES_PROMPT_H

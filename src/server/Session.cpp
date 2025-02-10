@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+using namespace Server;
+
 Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
     : _socket(std::move(socket)),
       _tcp_reader(_socket),

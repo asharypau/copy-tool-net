@@ -1,5 +1,5 @@
-#ifndef MESSAGE_QUEUE_HANDLER_H
-#define MESSAGE_QUEUE_HANDLER_H
+#ifndef CLIENT_MESSAGE_QUEUE_HANDLER_H
+#define CLIENT_MESSAGE_QUEUE_HANDLER_H
 
 #include <mutex>
 #include <queue>
@@ -7,28 +7,31 @@
 
 #include "../common/Tcp.h"
 #include "../models/Message.h"
-#include "FileReader.h"
+#include "FileHandler.h"
 
-class MessageQueueHandler
+namespace Client
 {
-public:
-    explicit MessageQueueHandler(Tcp::Writer tcp_writer);
+    class MessageQueueHandler
+    {
+    public:
+        explicit MessageQueueHandler(Tcp::Writer tcp_writer);
 
-    void handle(std::vector<Message>& messages);
+        void handle(std::vector<Message>& messages);
 
-private:
-    void send_headers(Message message);
-    void send_file(std::unique_ptr<FileReader>&& file_reader);
+    private:
+        void send_headers(Message message);
+        void send_file(std::unique_ptr<FileHandler>&& file_reader);
 
-    static constexpr size_t HEADER_SIZE = sizeof(size_t);
-    static constexpr size_t BATCH_SIZE = 1024 * 1024;
+        static constexpr size_t HEADER_SIZE = sizeof(size_t);
+        static constexpr size_t BATCH_SIZE = 1024 * 1024;
 
-    std::queue<Message> _messages;
-    std::vector<char> _header_buffer;
-    std::vector<char> _data_buffer;
-    std::mutex _mtx;
-    Tcp::Writer _tcp_writer;
-    bool _in_progress;
-};
+        std::queue<Message> _messages;
+        std::vector<char> _header_buffer;
+        std::vector<char> _data_buffer;
+        std::mutex _mtx;
+        Tcp::Writer _tcp_writer;
+        bool _in_progress;
+    };
+}
 
-#endif  // MESSAGE_QUEUE_HANDLER_H
+#endif  // CLIENT_MESSAGE_QUEUE_HANDLER_H

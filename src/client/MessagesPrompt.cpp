@@ -6,6 +6,8 @@
 
 #include "../models/Colors.h"
 
+using namespace Client;
+
 std::vector<Message> MessagesPrompt::get()
 {
     std::cout << std::endl

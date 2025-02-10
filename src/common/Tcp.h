@@ -182,7 +182,6 @@ namespace Tcp
         boost::asio::ip::tcp::socket& _socket;
         boost::asio::streambuf _buffer;
     };
-
 }
 
 #endif  // TCP_H

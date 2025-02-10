@@ -1,11 +1,13 @@
-#include "Client.h"
+#include "Startup.h"
 
 #include <thread>
 
 #include "../common/Tcp.h"
 #include "../utils/Logger.h"
 
-Client::Client(unsigned short port, std::string host)
+using namespace Client;
+
+Startup::Startup(unsigned short port, std::string host)
     : _context(),
       _socket(_context),
       _message_queue_handler(Tcp::Writer(_socket)),
@@ -15,7 +17,7 @@ Client::Client(unsigned short port, std::string host)
 {
 }
 
-void Client::run()
+void Startup::run()
 {
     Logger::info("Client started");
 
@@ -34,7 +36,7 @@ void Client::run()
     }
 }
 
-void Client::run_user_thread()
+void Startup::run_user_thread()
 {
     std::thread user_thread(
         [this]

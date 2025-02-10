@@ -2,6 +2,8 @@
 
 #include <filesystem>
 
+using namespace Server;
+
 FileHandler::FileHandler(size_t bytes_to_write, const std::string& name)
     : _file(get_absolute_path(name), std::ios::binary),
       _bytes_to_write(bytes_to_write)

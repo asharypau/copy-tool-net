@@ -2,6 +2,8 @@
 
 #include <string>
 
+using namespace Client;
+
 MessageQueueHandler::MessageQueueHandler(Tcp::Writer tcp_writer)
     : _tcp_writer(tcp_writer),
       _messages(),
@@ -42,11 +44,11 @@ void MessageQueueHandler::send_headers(Message message)
         _header_buffer.size(),
         [this, message]
         {
-            send_file(std::make_unique<FileReader>(message.path));
+            send_file(std::make_unique<FileHandler>(message.path));
         });
 }
 
-void MessageQueueHandler::send_file(std::unique_ptr<FileReader>&& file_reader)
+void MessageQueueHandler::send_file(std::unique_ptr<FileHandler>&& file_reader)
 {
     size_t bytes_read = file_reader->read(_data_buffer.data() + HEADER_SIZE, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
     if (bytes_read > 0)

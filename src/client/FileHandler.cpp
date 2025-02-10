@@ -1,6 +1,8 @@
-#include "FileReader.h"
+#include "FileHandler.h"
 
-FileReader::FileReader(const std::string& path)
+using namespace Client;
+
+FileHandler::FileHandler(const std::string& path)
     : _file(path, std::ifstream::binary)
 {
     if (!_file)
@@ -9,12 +11,12 @@ FileReader::FileReader(const std::string& path)
     }
 }
 
-FileReader::FileReader(FileReader&& other) noexcept
+FileHandler::FileHandler(FileHandler&& other) noexcept
     : _file(std::move(other._file))
 {
 }
 
-FileReader& FileReader::operator=(FileReader&& other) noexcept
+FileHandler& FileHandler::operator=(FileHandler&& other) noexcept
 {
     if (this != &other)
     {
@@ -24,12 +26,12 @@ FileReader& FileReader::operator=(FileReader&& other) noexcept
     return *this;
 }
 
-FileReader::~FileReader()
+FileHandler::~FileHandler()
 {
     _file.close();
 }
 
-size_t FileReader::read(char* data, size_t size)
+size_t FileHandler::read(char* data, size_t size)
 {
     _file.read(data, size);
 
