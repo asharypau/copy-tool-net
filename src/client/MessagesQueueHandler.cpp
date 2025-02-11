@@ -1,10 +1,10 @@
-#include "MessageQueueHandler.h"
+#include "MessagesQueueHandler.h"
 
 #include <string>
 
 using namespace Client;
 
-MessageQueueHandler::MessageQueueHandler(Tcp::Writer tcp_writer)
+MessagesQueueHandler::MessagesQueueHandler(Tcp::Writer tcp_writer)
     : _tcp_writer(tcp_writer),
       _messages(),
       _header_buffer(),
@@ -14,7 +14,7 @@ MessageQueueHandler::MessageQueueHandler(Tcp::Writer tcp_writer)
 {
 }
 
-void MessageQueueHandler::handle(std::vector<Message>& messages)
+void MessagesQueueHandler::handle(std::vector<Message>& messages)
 {
     std::unique_lock<std::mutex> lock(_mtx);
 
@@ -30,7 +30,7 @@ void MessageQueueHandler::handle(std::vector<Message>& messages)
     }
 }
 
-void MessageQueueHandler::send_headers(Message message)
+void MessagesQueueHandler::send_headers(Message message)
 {
     size_t file_name_size = message.name.size();
 
@@ -48,7 +48,7 @@ void MessageQueueHandler::send_headers(Message message)
         });
 }
 
-void MessageQueueHandler::send_file(std::unique_ptr<FileHandler>&& file)
+void MessagesQueueHandler::send_file(std::unique_ptr<FileHandler>&& file)
 {
     size_t bytes_read = file->read(_data_buffer.data() + HEADER_SIZE, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
     if (bytes_read > 0)

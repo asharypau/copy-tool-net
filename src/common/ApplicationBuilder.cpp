@@ -5,7 +5,7 @@
 #include "../client/Startup.h"
 #include "../server/Startup.h"
 
-std::unique_ptr<IApplication> ApplicationBuilder::build(CmdArgs args)
+std::unique_ptr<IApplication> ApplicationBuilder::build(CmdArgs args) const
 {
     switch (args.app_type)
     {

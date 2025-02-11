@@ -15,7 +15,7 @@ public:
      * @param type The type of application to build.
      * @return std::unique_ptr<IApplication> A unique pointer to the built application.
      */
-    std::unique_ptr<IApplication> build(CmdArgs args);
+    std::unique_ptr<IApplication> build(CmdArgs args) const;
 };
 
 #endif  // APPLICATION_BUILDER_H

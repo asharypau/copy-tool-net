@@ -5,8 +5,8 @@
 #include <string>
 
 #include "../common/IApplication.h"
-#include "MessageQueueHandler.h"
 #include "MessagesPrompt.h"
+#include "MessagesQueueHandler.h"
 
 namespace Client
 {
@@ -22,7 +22,7 @@ namespace Client
 
         boost::asio::io_context _context;
         boost::asio::ip::tcp::socket _socket;
-        MessageQueueHandler _message_queue_handler;
+        MessagesQueueHandler _messages_queue_handler;
         MessagesPrompt _messages_prompt;
         unsigned short _port;
         std::string _host;

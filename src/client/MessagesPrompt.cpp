@@ -8,7 +8,7 @@
 
 using namespace Client;
 
-std::vector<Message> MessagesPrompt::get()
+std::vector<Message> MessagesPrompt::get() const
 {
     std::cout << std::endl
               << Colors::WHITE
@@ -47,7 +47,7 @@ std::vector<Message> MessagesPrompt::get()
     return std::move(messages);
 }
 
-std::vector<Message> MessagesPrompt::internal_get()
+std::vector<Message> MessagesPrompt::internal_get() const
 {
     std::cout << Colors::WHITE << "Enter one or more files to send. Input format " << Colors::YELLOW << "filename:filepath: " << Colors::RESET;
 

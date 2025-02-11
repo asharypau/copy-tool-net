@@ -10,7 +10,7 @@ using namespace Client;
 Startup::Startup(unsigned short port, std::string host)
     : _context(),
       _socket(_context),
-      _message_queue_handler(Tcp::Writer(_socket)),
+      _messages_queue_handler(Tcp::Writer(_socket)),
       _messages_prompt(),
       _port(port),
       _host(host)
@@ -49,7 +49,7 @@ void Startup::run_user_thread()
                     break;
                 }
 
-                _message_queue_handler.handle(messages);
+                _messages_queue_handler.handle(messages);
             }
         });
 

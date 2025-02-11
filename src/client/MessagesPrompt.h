@@ -10,10 +10,10 @@ namespace Client
     class MessagesPrompt
     {
     public:
-        std::vector<Message> get();
+        std::vector<Message> get() const;
 
     private:
-        std::vector<Message> internal_get();
+        std::vector<Message> internal_get() const;
     };
 }
 

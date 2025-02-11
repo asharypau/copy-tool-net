@@ -17,7 +17,7 @@ namespace Server
 
     private:
         /**
-         * @brief Asynchronously accepts incoming connections.
+         * @brief Accepts incoming connections.
          *
          * This method initiates an asynchronous accept operation to wait for a new
          * connection. When a new connection is accepted, it creates a new session

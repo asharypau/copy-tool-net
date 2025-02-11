@@ -11,10 +11,10 @@
 
 namespace Client
 {
-    class MessageQueueHandler
+    class MessagesQueueHandler
     {
     public:
-        explicit MessageQueueHandler(Tcp::Writer tcp_writer);
+        explicit MessagesQueueHandler(Tcp::Writer tcp_writer);
 
         void handle(std::vector<Message>& messages);
 
