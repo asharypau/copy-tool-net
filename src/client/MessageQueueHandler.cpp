@@ -48,19 +48,19 @@ void MessageQueueHandler::send_headers(Message message)
         });
 }
 
-void MessageQueueHandler::send_file(std::unique_ptr<FileHandler>&& file_reader)
+void MessageQueueHandler::send_file(std::unique_ptr<FileHandler>&& file)
 {
-    size_t bytes_read = file_reader->read(_data_buffer.data() + HEADER_SIZE, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
+    size_t bytes_read = file->read(_data_buffer.data() + HEADER_SIZE, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
     if (bytes_read > 0)
     {
         std::memcpy(_data_buffer.data(), &bytes_read, HEADER_SIZE);  // write batch size into the buffer at index 0
 
         _tcp_writer.write(
             _data_buffer.data(),
-            bytes_read + HEADER_SIZE,
-            [this, file_reader = std::move(file_reader)]() mutable
+            HEADER_SIZE + bytes_read,
+            [this, file = std::move(file)]() mutable
             {
-                send_file(std::move(file_reader));
+                send_file(std::move(file));
             });
     }
     else

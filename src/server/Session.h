@@ -3,6 +3,7 @@
 
 #include <boost/asio.hpp>
 #include <memory>
+#include <vector>
 
 #include "../common/Tcp.h"
 #include "FileHandler.h"
@@ -24,6 +25,8 @@ namespace Server
 
         boost::asio::ip::tcp::socket _socket;
         Tcp::Reader _tcp_reader;
+        std::string _file_name_buffer;
+        std::vector<char> _data_buffer;
         size_t _client_id;
     };
 }

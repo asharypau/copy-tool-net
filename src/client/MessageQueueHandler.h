@@ -20,7 +20,7 @@ namespace Client
 
     private:
         void send_headers(Message message);
-        void send_file(std::unique_ptr<FileHandler>&& file_reader);
+        void send_file(std::unique_ptr<FileHandler>&& file);
 
         static constexpr size_t HEADER_SIZE = sizeof(size_t);
         static constexpr size_t BATCH_SIZE = 1024 * 1024;
