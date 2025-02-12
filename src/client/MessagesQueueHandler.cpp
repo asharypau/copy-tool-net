@@ -1,17 +1,24 @@
 #include "MessagesQueueHandler.h"
 
-#include <string>
+#include <algorithm>
+#include <vector>
 
 using namespace Client;
 
-MessagesQueueHandler::MessagesQueueHandler(Tcp::Writer tcp_writer)
-    : _tcp_writer(tcp_writer),
-      _messages(),
-      _header_buffer(),
-      _data_buffer(HEADER_SIZE + BATCH_SIZE),
-      _mtx(),
-      _in_progress(false)
+MessagesQueueHandler::MessagesQueueHandler(boost::asio::ip::tcp::socket& socket)
+    : _messages(),
+      _pending_messages(),
+      _message_handler(socket),
+      _writing_in_progress(false),
+      _reading_in_progress(false)
 {
+    _message_handler.register_write_handler(
+        [this]
+        { write_handle(); });
+
+    _message_handler.register_read_handler(
+        [this](size_t id)
+        { read_handle(id); });
 }
 
 void MessagesQueueHandler::handle(std::vector<Message>& messages)
@@ -23,57 +30,62 @@ void MessagesQueueHandler::handle(std::vector<Message>& messages)
         _messages.push(std::move(message));
     }
 
-    if (!_in_progress)
+    if (!_writing_in_progress)
     {
-        _in_progress = true;
-        send_headers(_messages.front());
+        _writing_in_progress = true;
+        _message_handler.write(_messages.front());
+    }
+
+    if (!_reading_in_progress)
+    {
+        _reading_in_progress = true;
+        _message_handler.read();
     }
 }
 
-void MessagesQueueHandler::send_headers(Message message)
+void MessagesQueueHandler::write_handle()
 {
-    size_t file_name_size = message.name.size();
+    std::unique_lock<std::mutex> lock(_mtx);
 
-    _header_buffer.resize(HEADER_SIZE * 2 + file_name_size);
-    std::memcpy(_header_buffer.data(), &message.size, HEADER_SIZE);                             // write a file_reader size into the buffer at index 0
-    std::memcpy(_header_buffer.data() + HEADER_SIZE, &file_name_size, HEADER_SIZE);             // write a file_reader name size into the buffer at index 0 + SIZE
-    std::memcpy(_header_buffer.data() + HEADER_SIZE * 2, message.name.data(), file_name_size);  // write a name into the buffer at index 0 + SIZE + SIZE
+    _pending_messages.push_back(std::move(_messages.front()));
+    _messages.pop();
+    _writing_in_progress = false;
 
-    _tcp_writer.write(
-        _header_buffer.data(),
-        _header_buffer.size(),
-        [this, message]
+    if (!_messages.empty())
+    {
+        _writing_in_progress = true;
+        _message_handler.write(_messages.front());
+    }
+}
+
+void MessagesQueueHandler::read_handle(size_t id)
+{
+    std::unique_lock<std::mutex> lock(_mtx);
+
+    if (_pending_messages.empty())
+    {
+        Logger::warning("Attempt to remove from empty queue");
+        return;
+    }
+
+    std::vector<Message>::iterator it = std::find_if(
+        _pending_messages.begin(),
+        _pending_messages.end(),
+        [id](const Message& current)
         {
-            send_file(std::make_unique<FileHandler>(message.path));
+            return current.id == id;
         });
-}
 
-void MessagesQueueHandler::send_file(std::unique_ptr<FileHandler>&& file)
-{
-    size_t bytes_read = file->read(_data_buffer.data() + HEADER_SIZE, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
-    if (bytes_read > 0)
+    if (it != _pending_messages.end())
     {
-        std::memcpy(_data_buffer.data(), &bytes_read, HEADER_SIZE);  // write batch size into the buffer at index 0
-
-        _tcp_writer.write(
-            _data_buffer.data(),
-            HEADER_SIZE + bytes_read,
-            [this, file = std::move(file)]() mutable
-            {
-                send_file(std::move(file));
-            });
+        _pending_messages.erase(it);
     }
-    else
+
+    _reading_in_progress = false;
+
+    if (!_pending_messages.empty())
     {
-        std::unique_lock<std::mutex> lock(_mtx);
-
-        _messages.pop();
-        _in_progress = false;
-
-        if (!_messages.empty())
-        {
-            _in_progress = true;
-            send_headers(_messages.front());
-        }
+        _reading_in_progress = true;
+        _message_handler.read();
     }
 }

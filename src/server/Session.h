@@ -2,6 +2,7 @@
 #define SERVER_SESSION_H
 
 #include <boost/asio.hpp>
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -18,15 +19,17 @@ namespace Server
         void run();
 
     private:
-        void get_headers();
-        void get_file(std::unique_ptr<FileHandler>&& file);
-
-        static constexpr size_t HEADER_SIZE = sizeof(size_t);
+        void read_headers();
+        void read_file(std::unique_ptr<FileHandler>&& file);
+        void write_confirmation();
 
         boost::asio::ip::tcp::socket _socket;
         Tcp::Reader _tcp_reader;
+        Tcp::Writer _tcp_writer;
+
         std::string _file_name_buffer;
         std::vector<char> _data_buffer;
+        size_t _file_id;
         size_t _client_id;
     };
 }

@@ -5,32 +5,28 @@
 #include <queue>
 #include <vector>
 
-#include "../common/Tcp.h"
 #include "../models/Message.h"
-#include "FileHandler.h"
+#include "MessageHandler.h"
 
 namespace Client
 {
     class MessagesQueueHandler
     {
     public:
-        explicit MessagesQueueHandler(Tcp::Writer tcp_writer);
+        explicit MessagesQueueHandler(boost::asio::ip::tcp::socket& socket);
 
         void handle(std::vector<Message>& messages);
 
     private:
-        void send_headers(Message message);
-        void send_file(std::unique_ptr<FileHandler>&& file);
-
-        static constexpr size_t HEADER_SIZE = sizeof(size_t);
-        static constexpr size_t BATCH_SIZE = 1024 * 1024;
+        void write_handle();
+        void read_handle(size_t id);
 
         std::queue<Message> _messages;
-        std::vector<char> _header_buffer;
-        std::vector<char> _data_buffer;
+        std::vector<Message> _pending_messages;
+        MessageHandler _message_handler;
         std::mutex _mtx;
-        Tcp::Writer _tcp_writer;
-        bool _in_progress;
+        bool _writing_in_progress;
+        bool _reading_in_progress;
     };
 }
 

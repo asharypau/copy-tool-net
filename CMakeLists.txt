@@ -26,7 +26,7 @@ FetchContent_Declare(
     EXCLUDE_FROM_ALL
 )
 
-set(BOOST_INCLUDE_LIBRARIES asio)
+set(BOOST_INCLUDE_LIBRARIES asio functional)
 FetchContent_GetProperties(Boost)
 
 if(NOT Boost_POPULATED)

@@ -8,6 +8,8 @@
 
 namespace Tcp
 {
+    static constexpr size_t HEADER_SIZE = sizeof(size_t);
+
     namespace InternalDetail
     {
         void handle_error(const boost::system::error_code& error);
