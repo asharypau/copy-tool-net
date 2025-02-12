@@ -10,6 +10,9 @@ namespace Client
     class MessagesPrompt
     {
     public:
+        /**
+         * @brief Gets messages via the user input.
+         */
         std::vector<Message> get() const;
 
     private:

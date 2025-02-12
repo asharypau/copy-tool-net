@@ -19,6 +19,9 @@ namespace Server
         void run() override;
 
     private:
+        /**
+         * @brief Creates a client storage.
+         */
         void create_client_storage();
 
         /**

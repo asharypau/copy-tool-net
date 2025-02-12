@@ -18,6 +18,28 @@ namespace Tcp
     class Connector
     {
     public:
+        /**
+         * @brief Establishes an asynchronous TCP connection to a specified host and port.
+         *
+         * This template function initiates an asynchronous connection to a TCP endpoint using Boost.Asio.
+         * It resolves the provided host and port, and then attempts to connect to the resolved endpoint.
+         * Upon a successful connection or an error, the provided callback is invoked. If the connection
+         * is successful, the callback is executed. If an error occurs, it is handled and logged.
+         *
+         * The function operates as follows:
+         * - Resolves the given host and port to obtain a list of endpoints.
+         * - Attempts to asynchronously connect to the resolved endpoint using `boost::asio::async_connect`.
+         * - If the connection succeeds, it calls the provided callback.
+         * - If the connection fails, the error is passed to an error handler.
+         * - Catches any exceptions thrown during the process and logs them.
+         *
+         * @tparam TCallback The type of the callback function or callable object that is executed upon successful connection.
+         *
+         * @param port The port number to which the connection should be made.
+         * @param host The host (IP address or domain) of the TCP server to connect to.
+         * @param socket The `boost::asio::ip::tcp::socket` object used for the connection.
+         * @param callback The callback function or callable object to be invoked once the connection is established.
+         */
         template <class TCallback>
         static void connect(unsigned short port, std::string host, boost::asio::ip::tcp::socket& socket, TCallback&& callback)
         {
@@ -61,6 +83,19 @@ namespace Tcp
     public:
         Acceptor(unsigned short port, boost::asio::io_context& context);
 
+        /**
+         * @brief Initiates an asynchronous TCP connection acceptance.
+         *
+         * The function operates as follows:
+         * - Calls `async_accept` on the `_acceptor` object to wait for an incoming client connection.
+         * - If the connection attempt is successful, the provided callback is invoked with the accepted socket, allowing the caller to handle the communication.
+         * - If an error occurs, the error is passed to an error handler.
+         * - Catches any exceptions thrown during the process and logs them..
+         *
+         * @tparam TCallback The type of the callback function or callable object that is executed when a connection is successfully accepted.
+         *
+         * @param callback The callback function or callable object to be invoked once a connection is accepted.
+         */
         template <class TCallback>
         void accept(TCallback&& callback)
         {
@@ -94,8 +129,24 @@ namespace Tcp
     public:
         explicit Writer(boost::asio::ip::tcp::socket& socket);
 
+        /**
+         * @brief Initiates an asynchronous write operation on the TCP socket.
+         *
+         * The function operates as follows:
+         * - Calls `boost::asio::async_write` to send the provided data over the socket.
+         * - If the write operation succeeds, the callback is executed.
+         * - If an error occurs, the error is passed to an error handler.
+         * - Catches any exceptions thrown during the process and logs them.
+         *
+         * @tparam TData The type of data to be written.
+         * @tparam TCallback The type of the callback function or callable object to be executed upon completion of the write operation.
+         *
+         * @param data A pointer to the data that should be written to the socket.
+         * @param size_in_bytes The number of bytes to write from the data buffer.
+         * @param callback The callback function or callable object to be invoked once the write operation completes successfully.
+         */
         template <class TData, class TCallback>
-        void write(TData* data, size_t size_in_bytes, TCallback&& callback)
+        void write(const TData* data, size_t size_in_bytes, TCallback&& callback)
         {
             boost::asio::async_write(
                 _socket,
@@ -137,8 +188,32 @@ namespace Tcp
         Reader(Reader&& other) = delete;
         Reader& operator=(Reader&&) = delete;
 
+        /**
+         * @brief Performs a synchronous read operation on the TCP socket.
+         *
+         * The function operates as follows:
+         * - Calls `boost::asio::read` to read exactly `size_in_bytes` bytes from the socket.
+         * - If the read operation succeeds, the data is stored in `_buffer`.
+         * - If an error occurs, the error is passed to an error handler.
+         *
+         * @param size_in_bytes The exact number of bytes to read from the socket.
+         */
         void read(size_t size_in_bytes);
 
+        /**
+         * @brief Initiates an asynchronous read operation on the TCP socket.
+         *
+         * The function operates as follows:
+         * - Calls `boost::asio::async_read` to read exactly `size_in_bytes` bytes from the socket.
+         * - If the read operation succeeds, the data is stored in `_buffer` the callback is executed.
+         * - If an error occurs, the error is passed to an error handler.
+         * - Catches any exceptions thrown during the process and logs them.
+         *
+         * @tparam TCallback The type of the callback function or callable object to be executed upon completion of the read operation.
+         *
+         * @param size_in_bytes The number of bytes to read from the socket.
+         * @param callback The callback function or callable object to be invoked once the read operation completes successfully.
+         */
         template <class TCallback>
         void read_async(size_t size_in_bytes, TCallback&& callback)
         {
@@ -166,6 +241,19 @@ namespace Tcp
                 });
         }
 
+        /**
+         * @brief Extracts a specified number of bytes from the internal buffer.
+         *
+         * The function operates as follows:
+         * - Uses `boost::asio::buffer_cast` to obtain a raw pointer to the buffer data.
+         * - Consumes (removes) the extracted bytes from `_buffer`.
+         *
+         * @tparam TData The type of data being extracted.
+         * @param data A pointer to the destination memory where the extracted bytes will be stored.
+         * @param size_in_bytes The number of bytes to extract from `_buffer`.
+         *
+         * @throws std::runtime_error If `_buffer` contains fewer than `size_in_bytes` bytes.
+         */
         template <class TData>
         void extract(TData* data, size_t size_in_bytes)
         {

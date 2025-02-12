@@ -18,6 +18,9 @@ namespace Client
         void run() override;
 
     private:
+        /**
+         * @brief Starts a new thread to handle user messages asynchronously.
+         */
         void run_user_thread();
 
         boost::asio::io_context _context;

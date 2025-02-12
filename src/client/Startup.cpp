@@ -53,5 +53,5 @@ void Startup::run_user_thread()
             }
         });
 
-    user_thread.detach();
+    user_thread.detach();  // the thread is detached from the main thread to run independently
 }

@@ -25,7 +25,7 @@ void Session::run()
 
 void Session::read_headers()
 {
-    std::shared_ptr<Session> self = shared_from_this();
+    std::shared_ptr<Session> self = shared_from_this();  // to extend the lifetime
 
     _tcp_reader.read_async(
         Tcp::HEADER_SIZE * 3,
@@ -50,7 +50,7 @@ void Session::read_headers()
 
 void Session::read_file(std::unique_ptr<FileHandler>&& file)
 {
-    std::shared_ptr<Session> self = shared_from_this();
+    std::shared_ptr<Session> self = shared_from_this();  // to extend the lifetime
 
     _tcp_reader.read_async(
         Tcp::HEADER_SIZE,
@@ -82,5 +82,7 @@ void Session::read_file(std::unique_ptr<FileHandler>&& file)
 
 void Session::write_confirmation(std::shared_ptr<FileHandler>&& file)
 {
-    _tcp_writer.write(file->get_id(), Tcp::HEADER_SIZE, [file] {});
+    _tcp_writer.write(
+        &file->get_id(),
+        Tcp::HEADER_SIZE, [file] {});  // Capture a file to to extend the lifetime.
 }

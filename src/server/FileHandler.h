@@ -20,11 +20,18 @@ namespace Server
         FileHandler(const FileHandler&) = delete;
         FileHandler& operator=(const FileHandler&) = delete;
 
+        /**
+         * @brief Writes data to the file and updates the remaining bytes to write.
+         *
+         * @param data Pointer to the data buffer containing the bytes to write.
+         * @param size Number of bytes to write from the buffer.
+         */
+
         void write(char* data, size_t size);
 
-        size_t* get_id() noexcept
+        const size_t& get_id() const noexcept
         {
-            return &_id;
+            return _id;
         }
 
         size_t get_bytes_to_write() const noexcept
