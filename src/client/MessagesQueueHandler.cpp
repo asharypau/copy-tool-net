@@ -1,6 +1,7 @@
 #include "MessagesQueueHandler.h"
 
 #include <algorithm>
+#include <string>
 #include <vector>
 
 using namespace Client;
@@ -47,6 +48,9 @@ void MessagesQueueHandler::write_handle()
 {
     std::unique_lock<std::mutex> lock(_mtx);
 
+    Message& message = _messages.front();
+    Logger::info("The message " + message.name + ':' + message.path + " has been sent.");
+
     _pending_messages.push_back(std::move(_messages.front()));
     _messages.pop();
     _writing_in_progress = false;
@@ -64,11 +68,11 @@ void MessagesQueueHandler::read_handle(size_t id)
 
     if (_pending_messages.empty())
     {
-        Logger::warning("Attempt to remove from empty queue");
+        Logger::warning("Attempt to remove message by id:" + std::to_string(id) + " from empty queue.");
         return;
     }
 
-    std::vector<Message>::iterator it = std::find_if(
+    std::vector<Message>::iterator current = std::find_if(
         _pending_messages.begin(),
         _pending_messages.end(),
         [id](const Message& current)
@@ -76,16 +80,12 @@ void MessagesQueueHandler::read_handle(size_t id)
             return current.id == id;
         });
 
-    if (it != _pending_messages.end())
+    if (current != _pending_messages.end())
     {
-        _pending_messages.erase(it);
+        Logger::info("Confirmation of successful message " + current->name + ':' + current->path + " sending received.");
+
+        _pending_messages.erase(current);
     }
 
-    _reading_in_progress = false;
-
-    if (!_pending_messages.empty())
-    {
-        _reading_in_progress = true;
-        _message_handler.read();
-    }
+    _message_handler.read();
 }

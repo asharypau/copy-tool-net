@@ -49,7 +49,7 @@ std::vector<Message> MessagesPrompt::get() const
 
 std::vector<Message> MessagesPrompt::internal_get() const
 {
-    std::cout << Colors::WHITE << "Enter one or more files to send. Input format " << Colors::YELLOW << "filename:filepath: " << Colors::RESET;
+    std::cout << Colors::WHITE << "Enter one or more files to send. Input format " << Colors::YELLOW << "filename:filepath: " << Colors::RESET << std::endl;
 
     std::string input;
     std::getline(std::cin, input);

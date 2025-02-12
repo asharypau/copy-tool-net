@@ -8,6 +8,9 @@
 
 namespace Server
 {
+    static size_t CLIENT_ID = 0;
+    static constexpr std::string_view CLIENT_STORAGE_PATH = "D:/Education/CppMentoring/files/output/";
+
     class Startup : public IApplication
     {
     public:
@@ -16,6 +19,8 @@ namespace Server
         void run() override;
 
     private:
+        void create_client_storage();
+
         /**
          * @brief Accepts incoming connections.
          *
@@ -24,8 +29,6 @@ namespace Server
          * for the client and starts it.
          */
         void accept();
-
-        static size_t _client_id;
 
         boost::asio::io_context _context;
         Tcp::Acceptor _acceptor;

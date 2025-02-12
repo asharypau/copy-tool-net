@@ -1,5 +1,5 @@
-#ifndef MESSAGE_WRITER_H
-#define MESSAGE_WRITER_H
+#ifndef MESSAGE_HANDLER_H
+#define MESSAGE_HANDLER_H
 
 #include <functional>
 #include <memory>
@@ -28,8 +28,8 @@ namespace Client
 
         static constexpr size_t BATCH_SIZE = 1024 * 1024;
 
-        std::vector<char> _header_buffer;
-        std::vector<char> _data_buffer;
+        std::vector<char> _headers;
+        std::vector<char> _batch;
         Tcp::Writer _tcp_writer;
         Tcp::Reader _tcp_reader;
         std::optional<std::function<void()>> _write_handle;
@@ -37,4 +37,4 @@ namespace Client
     };
 }
 
-#endif  // MESSAGE_WRITER_H
+#endif  // MESSAGE_HANDLER_H

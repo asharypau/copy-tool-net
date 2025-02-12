@@ -3,14 +3,13 @@
 
 #include <fstream>
 #include <string>
-#include <string_view>
 
 namespace Server
 {
     class FileHandler
     {
     public:
-        explicit FileHandler(size_t bytes_to_write, const std::string& name);
+        explicit FileHandler(size_t id, const std::string& folder, const std::string& name, size_t bytes_to_write);
 
         FileHandler(FileHandler&& other) noexcept;
         FileHandler& operator=(FileHandler&& other) noexcept;
@@ -23,17 +22,21 @@ namespace Server
 
         void write(char* data, size_t size);
 
+        size_t* get_id() noexcept
+        {
+            return &_id;
+        }
+
         size_t get_bytes_to_write() const noexcept
         {
             return _bytes_to_write;
         }
 
     private:
-        std::string get_absolute_path(const std::string& file_name);
-
-        static constexpr std::string_view PATH = "D:/Education/CppMentoring/files/output/";
+        std::string get_absolute_path(const std::string& folder, const std::string& name);
 
         std::ofstream _file;
+        size_t _id;
         size_t _bytes_to_write;
     };
 }

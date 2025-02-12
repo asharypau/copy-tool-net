@@ -21,15 +21,12 @@ namespace Server
     private:
         void read_headers();
         void read_file(std::unique_ptr<FileHandler>&& file);
-        void write_confirmation();
+        void write_confirmation(std::shared_ptr<FileHandler>&& file);
 
         boost::asio::ip::tcp::socket _socket;
         Tcp::Reader _tcp_reader;
         Tcp::Writer _tcp_writer;
-
-        std::string _file_name_buffer;
-        std::vector<char> _data_buffer;
-        size_t _file_id;
+        std::vector<char> _batch;
         size_t _client_id;
     };
 }

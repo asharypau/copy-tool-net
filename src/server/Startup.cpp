@@ -1,11 +1,12 @@
 #include "Startup.h"
 
+#include <filesystem>
+#include <string>
+
 #include "../utils/Logger.h"
 #include "Session.h"
 
 using namespace Server;
-
-size_t Startup::_client_id = 0;
 
 Startup::Startup(unsigned short port)
     : _context(),
@@ -35,9 +36,15 @@ void Startup::accept()
     _acceptor.accept(
         [this](boost::asio::ip::tcp::socket socket)
         {
-            ++_client_id;
-            std::make_shared<Session>(std::move(socket), _client_id)->run();
+            ++CLIENT_ID;
+            create_client_storage();
+            std::make_shared<Session>(std::move(socket), CLIENT_ID)->run();
 
             accept();  // wait for another connection
         });
+}
+
+void Startup::create_client_storage()
+{
+    std::filesystem::create_directory(std::string(Server::CLIENT_STORAGE_PATH) + std::to_string(CLIENT_ID));
 }
