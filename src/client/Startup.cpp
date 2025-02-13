@@ -13,8 +13,16 @@ Startup::Startup(unsigned short port, std::string host)
       _messages_queue_handler(_socket),
       _messages_prompt(),
       _port(port),
-      _host(host)
+      _host(host),
+      _stop(false)
 {
+}
+
+Startup::~Startup()
+{
+    Logger::info("Client stopped");
+
+    _socket.close();
 }
 
 void Startup::run()
@@ -30,7 +38,7 @@ void Startup::run()
             run_user_thread();
         });
 
-    while (true)
+    while (!_stop)
     {
         _context.run();
     }
@@ -41,12 +49,12 @@ void Startup::run_user_thread()
     std::thread user_thread(
         [this]
         {
-            while (true)
+            while (!_stop)
             {
                 std::vector<Message> messages = _messages_prompt.get();
                 if (messages.empty())
                 {
-                    break;
+                    _stop = true;
                 }
 
                 _messages_queue_handler.handle(messages);

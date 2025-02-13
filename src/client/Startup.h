@@ -14,6 +14,7 @@ namespace Client
     {
     public:
         Startup(unsigned short port, std::string host);
+        ~Startup();
 
         void run() override;
 
@@ -29,6 +30,7 @@ namespace Client
         MessagesPrompt _messages_prompt;
         unsigned short _port;
         std::string _host;
+        bool _stop;
     };
 }
 

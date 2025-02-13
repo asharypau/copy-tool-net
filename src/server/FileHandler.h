@@ -29,7 +29,7 @@ namespace Server
 
         void write(char* data, size_t size);
 
-        const size_t& get_id() const noexcept
+        size_t get_id() const noexcept
         {
             return _id;
         }
