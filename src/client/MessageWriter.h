@@ -1,5 +1,5 @@
-#ifndef MESSAGE_HANDLER_H
-#define MESSAGE_HANDLER_H
+#ifndef MESSAGE_WRITER_H
+#define MESSAGE_WRITER_H
 
 #include <functional>
 #include <memory>
@@ -12,10 +12,10 @@
 
 namespace Client
 {
-    class MessageHandler
+    class MessageWriter
     {
     public:
-        explicit MessageHandler(boost::asio::ip::tcp::socket& socket);
+        explicit MessageWriter(boost::asio::ip::tcp::socket& socket);
 
         /**
          * @brief Writes message via the TCP writer.
@@ -23,27 +23,14 @@ namespace Client
         void write(Message message);
 
         /**
-         * @brief Reads confirmations of sending messages via the TCP reader.
-         *
-         * The flow of the function is as follows:
-         * - Once the confirmation is received, the file id is extracted from the data.
-         * - If a read handler is registered, the handler is invoked with the extracted id.
-         */
-        void read();
-
-        /**
          * @brief Registers a callback handler for writing data.
          *
-         * @param read_handle A `std::function` representing the callback to be invoked when data is written.
+         * @param write_handle A `std::function` representing the callback to be invoked when data is written.
          */
-        void register_write_handler(std::function<void()> write_handle);
-
-        /**
-         * @brief Registers a callback handler for reading data.
-         *
-         * @param read_handle A `std::function` representing the callback to be invoked when data is read.
-         */
-        void register_read_handler(std::function<void(size_t)> read_handle);
+        void register_write_handler(std::function<void()> write_handle)
+        {
+            _write_handle.emplace(write_handle);
+        }
 
     private:
         /**
@@ -84,10 +71,8 @@ namespace Client
         std::vector<char> _headers;
         std::vector<char> _batch;
         Tcp::Writer _tcp_writer;
-        Tcp::Reader _tcp_reader;
         std::optional<std::function<void()>> _write_handle;
-        std::optional<std::function<void(size_t)>> _read_handle;
     };
 }
 
-#endif  // MESSAGE_HANDLER_H
+#endif

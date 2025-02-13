@@ -84,5 +84,5 @@ void Session::write_confirmation(std::shared_ptr<FileHandler>&& file)
 {
     _tcp_writer.write(
         &file->get_id(),
-        Tcp::HEADER_SIZE, [file] {});  // Capture a file to to extend the lifetime.
+        Tcp::HEADER_SIZE, [file] {});  // capture a file to to extend the lifetime
 }

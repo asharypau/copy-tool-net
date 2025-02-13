@@ -4,7 +4,8 @@ add_library(
     FileHandler.cpp
     MessagesPrompt.cpp
     MessagesQueueHandler.cpp
-    MessageHandler.cpp
+    MessageWriter.cpp
+    MessageReader.cpp
 )
 
 target_link_libraries(Client PRIVATE Boost::asio)

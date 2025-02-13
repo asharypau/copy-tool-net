@@ -6,7 +6,8 @@
 #include <vector>
 
 #include "../models/Message.h"
-#include "MessageHandler.h"
+#include "MessageReader.h"
+#include "MessageWriter.h"
 
 namespace Client
 {
@@ -55,7 +56,8 @@ namespace Client
 
         std::queue<Message> _messages;
         std::vector<Message> _pending_messages;
-        MessageHandler _message_handler;
+        MessageWriter _message_writer;
+        MessageReader _message_reader;
         std::mutex _mtx;
         bool _writing_in_progress;
         bool _reading_in_progress;

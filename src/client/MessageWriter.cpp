@@ -1,49 +1,21 @@
-#include "MessageHandler.h"
+#include "MessageWriter.h"
 
 using namespace Client;
 
-MessageHandler::MessageHandler(boost::asio::ip::tcp::socket& socket)
+MessageWriter::MessageWriter(boost::asio::ip::tcp::socket& socket)
     : _headers(),
       _batch(Tcp::HEADER_SIZE + BATCH_SIZE),
       _tcp_writer(socket),
-      _tcp_reader(socket),
-      _write_handle(),
-      _read_handle()
+      _write_handle()
 {
 }
 
-void MessageHandler::write(Message message)
+void MessageWriter::write(Message message)
 {
     write_headers(message);
 }
 
-void MessageHandler::read()
-{
-    _tcp_reader.read_async(
-        Tcp::HEADER_SIZE,
-        [this]
-        {
-            size_t id;
-            _tcp_reader.extract(&id, Tcp::HEADER_SIZE);
-
-            if (_read_handle.has_value())
-            {
-                _read_handle.value()(id);
-            }
-        });
-}
-
-void MessageHandler::register_write_handler(std::function<void()> write_handle)
-{
-    _write_handle.emplace(write_handle);
-}
-
-void MessageHandler::register_read_handler(std::function<void(size_t)> read_handle)
-{
-    _read_handle.emplace(read_handle);
-}
-
-void MessageHandler::write_headers(Message message)
+void MessageWriter::write_headers(Message message)
 {
     size_t file_name_size = message.name.size();
 
@@ -62,7 +34,7 @@ void MessageHandler::write_headers(Message message)
         });
 }
 
-void MessageHandler::write_file(std::unique_ptr<FileHandler>&& file)
+void MessageWriter::write_file(std::unique_ptr<FileHandler>&& file)
 {
     size_t batch_size = file->read(_batch.data() + Tcp::HEADER_SIZE, BATCH_SIZE);  // write data into the buffer at index 0 + SIZE
     if (batch_size > 0)
