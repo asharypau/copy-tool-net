@@ -9,16 +9,15 @@ using namespace Client;
 MessagesQueueHandler::MessagesQueueHandler(boost::asio::ip::tcp::socket& socket)
     : _messages(),
       _pending_messages(),
-      _message_writer(socket),
-      _message_reader(socket),
+      _file_client(socket),
       _writing_in_progress(false),
       _reading_in_progress(false)
 {
-    _message_writer.register_write_handler(
+    _file_client.register_write_handler(
         [this]
         { write_handle(); });
 
-    _message_reader.register_read_handler(
+    _file_client.register_read_handler(
         [this](size_t id)
         { read_handle(id); });
 }
@@ -35,13 +34,13 @@ void MessagesQueueHandler::handle(std::vector<Message>& messages)
     if (!_writing_in_progress)
     {
         _writing_in_progress = true;
-        _message_writer.write(_messages.front());
+        _file_client.write(_messages.front());
     }
 
     if (!_reading_in_progress)
     {
         _reading_in_progress = true;
-        _message_reader.read();
+        _file_client.read();
     }
 }
 
@@ -59,7 +58,7 @@ void MessagesQueueHandler::write_handle()
     if (!_messages.empty())
     {
         _writing_in_progress = true;
-        _message_writer.write(_messages.front());
+        _file_client.write(_messages.front());
     }
 }
 
@@ -88,5 +87,5 @@ void MessagesQueueHandler::read_handle(size_t id)
         _pending_messages.erase(current);
     }
 
-    _message_reader.read();
+    _file_client.read();
 }

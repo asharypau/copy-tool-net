@@ -1,11 +1,10 @@
 add_library(
     Client STATIC
     Startup.cpp
-    FileHandler.cpp
     MessagesPrompt.cpp
     MessagesQueueHandler.cpp
-    MessageWriter.cpp
-    MessageReader.cpp
+    FileClient.cpp
+    FileHandler.cpp
 )
 
 target_link_libraries(Client PRIVATE Boost::asio)

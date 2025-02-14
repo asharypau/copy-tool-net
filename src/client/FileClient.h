@@ -1,5 +1,5 @@
-#ifndef MESSAGE_WRITER_H
-#define MESSAGE_WRITER_H
+#ifndef FILE_CLIENT_H
+#define FILE_CLIENT_H
 
 #include <functional>
 #include <memory>
@@ -12,15 +12,20 @@
 
 namespace Client
 {
-    class MessageWriter
+    class FileClient
     {
     public:
-        explicit MessageWriter(boost::asio::ip::tcp::socket& socket);
+        explicit FileClient(boost::asio::ip::tcp::socket& socket);
 
         /**
          * @brief Writes message via the TCP writer.
          */
         void write(Message message);
+
+        /**
+         * @brief Reads confirmations of sending messages via the TCP reader.
+         */
+        void read();
 
         /**
          * @brief Registers a callback handler for writing data.
@@ -32,22 +37,30 @@ namespace Client
             _write_handle.emplace(write_handle);
         }
 
+        /**
+         * @brief Registers a callback handler for reading data.
+         *
+         * @param read_handle A `std::function` representing the callback to be invoked when data is read.
+         */
+        void register_read_handler(std::function<void(size_t)> read_handle)
+        {
+            _read_handle.emplace(read_handle);
+        }
+
     private:
         /**
          * @brief Prepares the headers and writes their asynchronously via the TCP writer.
          *
          * The header format is as follows:
          * - 1st block: File id (`message.id`).
-         * - 2nd block: File size (`message.size`).
-         * - 3rd block: File name size (`file_name_size`).
-         * - 4th block: File name (`message.name`).
+         * - 2nd block: File name size (`file_name_size`).
+         * - 3rd block: File name (`message.name`).
          *
          * @param message The message containing the file information to be sent.
          *
          * The function operates as follows:
-         * - Calculates the size of the file name.
          * - Resizes the header buffer based on the file information.
-         * - Copies the file id, size, name size, and name into the header buffer.
+         * - Copies the file id, name size and name into the header buffer.
          * - Asynchronously writes the headers over TCP.
          * - Once the headers are written, it calls `write_file` to transmit the file data.
          */
@@ -70,9 +83,13 @@ namespace Client
 
         std::vector<char> _headers;
         std::vector<char> _batch;
-        Tcp::Writer _tcp_writer;
-        std::optional<std::function<void()>> _write_handle;
-    };
-}
 
-#endif
+        Tcp::Writer _tcp_writer;
+        Tcp::Reader _tcp_reader;
+
+        std::optional<std::function<void()>> _write_handle;
+        std::optional<std::function<void(size_t)>> _read_handle;
+    };
+
+}
+#endif  // FILE_CLIENT_H

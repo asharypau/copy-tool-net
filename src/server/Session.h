@@ -1,20 +1,22 @@
-#ifndef SERVER_SESSION_H
-#define SERVER_SESSION_H
+#ifndef SESSION_H
+#define SESSION_H
 
 #include <boost/asio.hpp>
 #include <memory>
 #include <string>
 
 #include "../common/Tcp.h"
-#include "FileHandler.h"
-#include "MessageReader.h"
+#include "Dispatcher.h"
 
 namespace Server
 {
+    class Dispatcher;   // forward declaration
+    class IController;  // forward declaration
+
     class Session : public std::enable_shared_from_this<Session>
     {
     public:
-        Session(boost::asio::ip::tcp::socket socket, size_t client_id);
+        Session(size_t client_id, boost::asio::ip::tcp::socket socket);
         ~Session();
 
         /**
@@ -22,17 +24,19 @@ namespace Server
          */
         void run();
 
-    private:
         /**
-         * @brief Writes a confirmation via the TCP writer.
+         * @brief Notifies that the request has been processed.
          */
-        void write_confirmation(std::shared_ptr<FileHandler>&& file);
+        void notify_done();
 
-        boost::asio::ip::tcp::socket _socket;
-        MessageReader _message_reader;
-        Tcp::Writer _tcp_writer;
+    private:
         std::string _client_id;
+        boost::asio::ip::tcp::socket _socket;
+        Tcp::Reader _tcp_reader;
+        Tcp::Writer _tcp_writer;
+        Dispatcher _dispatcher;
+        std::string _endpoint;
     };
 }
 
-#endif  // SERVER_SESSION_H
+#endif  // SESSION_H

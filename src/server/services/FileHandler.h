@@ -9,7 +9,7 @@ namespace Server
     class FileHandler
     {
     public:
-        explicit FileHandler(size_t id, const std::string& folder, const std::string& name, size_t bytes_to_write);
+        explicit FileHandler(const std::string& folder, const std::string& name);
 
         FileHandler(FileHandler&& other) noexcept;
         FileHandler& operator=(FileHandler&& other) noexcept;
@@ -21,7 +21,7 @@ namespace Server
         FileHandler& operator=(const FileHandler&) = delete;
 
         /**
-         * @brief Writes data to the file and updates the remaining bytes to write.
+         * @brief Writes data to the file.
          *
          * @param data Pointer to the data buffer containing the bytes to write.
          * @param size Number of bytes to write from the buffer.
@@ -29,22 +29,10 @@ namespace Server
 
         void write(char* data, size_t size);
 
-        size_t get_id() const noexcept
-        {
-            return _id;
-        }
-
-        size_t get_bytes_to_write() const noexcept
-        {
-            return _bytes_to_write;
-        }
-
     private:
         std::string get_absolute_path(const std::string& folder, const std::string& name);
 
         std::ofstream _file;
-        size_t _id;
-        size_t _bytes_to_write;
     };
 }
 

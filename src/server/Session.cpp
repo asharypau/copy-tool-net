@@ -1,16 +1,18 @@
 #include "Session.h"
 
-#include <memory>
 #include <string>
-#include <utility>
+
+#include "../models/Endpoints.h"
 
 using namespace Server;
 
-Session::Session(boost::asio::ip::tcp::socket socket, size_t client_id)
-    : _socket(std::move(socket)),
-      _message_reader(_socket),
+Session::Session(size_t client_id, boost::asio::ip::tcp::socket socket)
+    : _client_id(std::to_string(client_id)),
+      _socket(std::move(socket)),
+      _tcp_reader(_socket),
       _tcp_writer(_socket),
-      _client_id(std::to_string(client_id))
+      _dispatcher(_client_id, _tcp_reader, _tcp_writer),
+      _endpoint(Endpoints::LENGTH, '\0')
 {
     Logger::info("Client connected: " + _client_id);
 }
@@ -24,17 +26,22 @@ Session::~Session()
 
 void Session::run()
 {
-    std::shared_ptr<Session> self = shared_from_this();  // to extend the lifetime
+    std::shared_ptr<Session> self = shared_from_this();  // to extend the session lifetime
 
-    _message_reader.read(
-        _client_id,
-        [this, self](size_t file_id)
+    _tcp_reader.read_async(
+        Endpoints::LENGTH + Tcp::HEADER_SIZE,
+        [this, self]
         {
-            std::shared_ptr<size_t> id = std::make_shared<size_t>(file_id);
-            _tcp_writer.write(
-                id.get(),
-                Tcp::HEADER_SIZE, [id] {});  // capture the file_id to to extend the lifetime
+            _tcp_reader.extract(_endpoint.data(), Endpoints::LENGTH);  // get endpoint
 
-            run();
+            size_t request_size = 0;
+            _tcp_reader.extract(&request_size, Tcp::HEADER_SIZE);  // get request size
+
+            _dispatcher.handle(request_size, std::string(_endpoint.data()), self);
         });
+}
+
+void Session::notify_done()
+{
+    run();
 }

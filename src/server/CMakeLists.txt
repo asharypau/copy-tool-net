@@ -2,8 +2,9 @@ add_library(
     Server STATIC
     Startup.cpp
     Session.cpp
-    MessageReader.cpp
-    FileHandler.cpp
+    Dispatcher.cpp
+    controllers/FileController.cpp
+    services/FileHandler.cpp
 )
 
 target_link_libraries(Server PRIVATE Boost::asio)
