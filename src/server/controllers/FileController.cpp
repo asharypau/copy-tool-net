@@ -17,7 +17,7 @@ FileController::FileController(std::string& client_id, Tcp::Reader& tcp_reader, 
 {
 }
 
-void FileController::handle(size_t request_size, std::shared_ptr<Session> session)
+void FileController::handle(Tcp::header_t request_size, std::shared_ptr<Session> session)
 {
     if (request_size != 0)
     {
@@ -38,7 +38,7 @@ void FileController::read_headers(std::shared_ptr<Session> session)
         });
 }
 
-void FileController::read_file(Tcp::header_type confirmation_id, std::shared_ptr<Session> session)
+void FileController::read_file(Tcp::header_t confirmation_id, std::shared_ptr<Session> session)
 {
     _tcp_reader.read_async<FileRequest>(
         [this, confirmation_id, session](FileRequest file_request)
@@ -58,7 +58,7 @@ void FileController::read_file(Tcp::header_type confirmation_id, std::shared_ptr
         });
 }
 
-void FileController::write_confirmation(Tcp::header_type confirmation_id, std::shared_ptr<Session> session)
+void FileController::write_confirmation(Tcp::header_t confirmation_id, std::shared_ptr<Session> session)
 {
     _tcp_writer.write_async(
         confirmation_id,

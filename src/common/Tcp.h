@@ -12,7 +12,7 @@ namespace Tcp
 {
     class ISerializable;  // forward declaration
 
-    using header_type = size_t;
+    using header_t = size_t;
 
     static constexpr size_t CONTENT_SIZE = sizeof(size_t);
     static constexpr size_t HEADER_SIZE = sizeof(size_t);
@@ -142,7 +142,7 @@ namespace Tcp
         template <class TModel, class TCallback>
         void write_async(TModel& model, TCallback&& callback)
         {
-            Tcp::header_type content_length = sizeof(model);
+            Tcp::header_t content_length = sizeof(model);
 
             std::shared_ptr<std::vector<char>> buffer = std::make_shared<std::vector<char>>(Tcp::HEADER_SIZE + content_length);
             std::memcpy(buffer->data(), &content_length, Tcp::HEADER_SIZE);
@@ -175,7 +175,7 @@ namespace Tcp
         void write_async(TSerializableModel& model, TCallback&& callback)
         {
             std::vector<char> content = model.serialize();
-            Tcp::header_type content_length = content.size();
+            Tcp::header_t content_length = content.size();
 
             std::shared_ptr<std::vector<char>> buffer = std::make_shared<std::vector<char>>(Tcp::HEADER_SIZE + content_length);
             std::memcpy(buffer->data(), &content_length, Tcp::HEADER_SIZE);
@@ -238,7 +238,7 @@ namespace Tcp
                         }
                         else
                         {
-                            Tcp::header_type content_length = 0;
+                            Tcp::header_t content_length = 0;
                             extract(&content_length, CONTENT_SIZE);
 
                             read(content_length);
@@ -272,7 +272,7 @@ namespace Tcp
                         }
                         else
                         {
-                            Tcp::header_type content_length = 0;
+                            Tcp::header_t content_length = 0;
                             extract(&content_length, CONTENT_SIZE);
 
                             read(content_length);
@@ -327,10 +327,10 @@ namespace Tcp
         }
 
         template <serializable_constraint TSerializableModel>
-        TSerializableModel extract(Tcp::header_type content_length)
+        TSerializableModel extract(Tcp::header_t content_length)
         {
             TSerializableModel model(content_length);
-            Tcp::header_type consumed_bytes = model.deserialize(_buffer);
+            Tcp::header_t consumed_bytes = model.deserialize(_buffer);
             if (consumed_bytes != content_length)
             {
                 throw std::runtime_error("Buffer underflow");
@@ -349,7 +349,7 @@ namespace Tcp
     {
     public:
         ISerializable() = default;
-        ISerializable(Tcp::header_type content_length)
+        ISerializable(Tcp::header_t content_length)
             : _content_length(content_length)
         {
         }
@@ -357,15 +357,15 @@ namespace Tcp
         virtual ~ISerializable() = default;
 
         virtual std::vector<char> serialize() = 0;
-        virtual Tcp::header_type deserialize(const boost::asio::streambuf& buffer) = 0;
+        virtual Tcp::header_t deserialize(const boost::asio::streambuf& buffer) = 0;
 
-        Tcp::header_type get_content_length()
+        Tcp::header_t get_content_length()
         {
             return _content_length;
         }
 
     private:
-        Tcp::header_type _content_length;
+        Tcp::header_t _content_length;
     };
 }
 

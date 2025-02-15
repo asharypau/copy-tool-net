@@ -10,7 +10,7 @@ class FileRequest : public Tcp::ISerializable
 public:
     FileRequest() = default;
 
-    FileRequest(Tcp::header_type content_length)
+    FileRequest(Tcp::header_t content_length)
         : ISerializable(content_length)
     {
     }
@@ -29,11 +29,11 @@ public:
         return std::move(buffer);
     }
 
-    Tcp::header_type deserialize(const boost::asio::streambuf& buffer) override
+    Tcp::header_t deserialize(const boost::asio::streambuf& buffer) override
     {
-        Tcp::header_type offset = 0;
+        Tcp::header_t offset = 0;
 
-        const Tcp::header_type* raw_batch_size = boost::asio::buffer_cast<const Tcp::header_type*>(buffer.data() + offset);
+        const Tcp::header_t* raw_batch_size = boost::asio::buffer_cast<const Tcp::header_t*>(buffer.data() + offset);
         std::memcpy(&batch_size, raw_batch_size, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
@@ -45,7 +45,7 @@ public:
         return offset;
     }
 
-    Tcp::header_type batch_size = 0;
+    Tcp::header_t batch_size = 0;
     std::vector<char> batch;
 };
 

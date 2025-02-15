@@ -15,11 +15,15 @@ MessagesQueueHandler::MessagesQueueHandler(boost::asio::ip::tcp::socket& socket)
 {
     _file_client.register_write_handler(
         [this]
-        { write_handle(); });
+        {
+            write_handle();
+        });
 
     _file_client.register_read_handler(
-        [this](size_t id)
-        { read_handle(id); });
+        [this](Tcp::header_t confirmation_id)
+        {
+            read_handle(confirmation_id);
+        });
 }
 
 void MessagesQueueHandler::handle(std::vector<Message>& messages)
@@ -62,22 +66,22 @@ void MessagesQueueHandler::write_handle()
     }
 }
 
-void MessagesQueueHandler::read_handle(size_t id)
+void MessagesQueueHandler::read_handle(Tcp::header_t confirmation_id)
 {
     std::unique_lock<std::mutex> lock(_mtx);
 
     if (_pending_messages.empty())
     {
-        Logger::warning("Attempt to remove message by id:" + std::to_string(id) + " from empty queue.");
+        Logger::warning("Attempt to remove message by id:" + std::to_string(confirmation_id) + " from empty queue.");
         return;
     }
 
     std::vector<Message>::iterator current = std::find_if(
         _pending_messages.begin(),
         _pending_messages.end(),
-        [id](const Message& current)
+        [confirmation_id](const Message& current)
         {
-            return current.id == id;
+            return current.id == confirmation_id;
         });
 
     if (current != _pending_messages.end())

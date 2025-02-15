@@ -51,7 +51,7 @@ namespace Client
          *
          * @param id The Id of the message to be removed from the pending messages queue.
          */
-        void read_handle(size_t id);
+        void read_handle(Tcp::header_t confirmation_id);
 
         std::queue<Message> _messages;
         std::vector<Message> _pending_messages;

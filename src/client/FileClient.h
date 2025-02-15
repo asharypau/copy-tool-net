@@ -40,7 +40,7 @@ namespace Client
          *
          * @param read_handle A `std::function` representing the callback to be invoked when data is read.
          */
-        void register_read_handler(std::function<void(size_t)> read_handle)
+        void register_read_handler(std::function<void(Tcp::header_t)> read_handle)
         {
             _read_handle.emplace(read_handle);
         }
@@ -83,7 +83,7 @@ namespace Client
         Tcp::Reader _tcp_reader;
         FileService _file_service;
         std::optional<std::function<void()>> _write_handle;
-        std::optional<std::function<void(size_t)>> _read_handle;
+        std::optional<std::function<void(Tcp::header_t)>> _read_handle;
     };
 
 }

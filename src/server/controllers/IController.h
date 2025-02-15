@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include "../common/Tcp.h"
+
 namespace Server
 {
     class Session;  // forward declaration
@@ -10,7 +12,7 @@ namespace Server
     class IController
     {
     public:
-        virtual void handle(size_t request_size, std::shared_ptr<Session> session) = 0;
+        virtual void handle(Tcp::header_t request_size, std::shared_ptr<Session> session) = 0;
 
         virtual ~IController() = default;
     };

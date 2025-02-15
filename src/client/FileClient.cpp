@@ -34,8 +34,8 @@ void FileClient::write(Message message)
 
 void FileClient::read()
 {
-    _tcp_reader.read_async<Tcp::header_type>(
-        [this](Tcp::header_type confirmation_id)
+    _tcp_reader.read_async<Tcp::header_t>(
+        [this](Tcp::header_t confirmation_id)
         {
             if (_read_handle.has_value())
             {

@@ -10,7 +10,7 @@ class FileHeaders : public Tcp::ISerializable
 public:
     FileHeaders() = default;
 
-    FileHeaders(Tcp::header_type content_length)
+    FileHeaders(Tcp::header_t content_length)
         : ISerializable(content_length)
     {
     }
@@ -23,7 +23,7 @@ public:
         std::memcpy(buffer.data() + offset, reinterpret_cast<const char*>(&confirmation_id), Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
-        Tcp::header_type name_size = name.size();
+        Tcp::header_t name_size = name.size();
         std::memcpy(buffer.data() + offset, reinterpret_cast<const char*>(&name_size), Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
@@ -33,16 +33,16 @@ public:
         return std::move(buffer);
     }
 
-    Tcp::header_type deserialize(const boost::asio::streambuf& buffer) override
+    Tcp::header_t deserialize(const boost::asio::streambuf& buffer) override
     {
-        Tcp::header_type offset = 0;
+        Tcp::header_t offset = 0;
 
-        const Tcp::header_type* raw_confirmation_id = boost::asio::buffer_cast<const Tcp::header_type*>(buffer.data() + offset);
+        const Tcp::header_t* raw_confirmation_id = boost::asio::buffer_cast<const Tcp::header_t*>(buffer.data() + offset);
         std::memcpy(&confirmation_id, raw_confirmation_id, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
-        const Tcp::header_type* raw_name_size = boost::asio::buffer_cast<const Tcp::header_type*>(buffer.data() + offset);
-        const Tcp::header_type name_size = *raw_name_size;
+        const Tcp::header_t* raw_name_size = boost::asio::buffer_cast<const Tcp::header_t*>(buffer.data() + offset);
+        const Tcp::header_t name_size = *raw_name_size;
         offset += Tcp::HEADER_SIZE;
 
         const char* raw_name = boost::asio::buffer_cast<const char*>(buffer.data() + offset);
@@ -52,7 +52,7 @@ public:
         return offset;
     }
 
-    Tcp::header_type confirmation_id = 0;
+    Tcp::header_t confirmation_id = 0;
     std::string name;
 };
 
