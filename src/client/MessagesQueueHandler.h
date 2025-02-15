@@ -56,7 +56,6 @@ namespace Client
         std::queue<Message> _messages;
         std::vector<Message> _pending_messages;
         FileClient _file_client;
-
         std::mutex _mtx;
         bool _writing_in_progress;
         bool _reading_in_progress;

@@ -4,7 +4,6 @@ add_library(
     Session.cpp
     Dispatcher.cpp
     controllers/FileController.cpp
-    services/FileService.cpp
 )
 
 target_link_libraries(Server PRIVATE Boost::asio)

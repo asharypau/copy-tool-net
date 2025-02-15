@@ -6,6 +6,7 @@ add_executable(
     main.cpp
     common/ApplicationBuilder.cpp
     common/Tcp.cpp
+    common/FileService.cpp
     utils/CmdArgsParser.cpp
 )
 

@@ -2,12 +2,11 @@
 #define FILE_CLIENT_H
 
 #include <functional>
-#include <memory>
 #include <optional>
 
+#include "../common/FileService.h"
 #include "../common/Tcp.h"
 #include "../models/Message.h"
-#include "FileHandler.h"
 
 namespace Client
 {
@@ -76,12 +75,13 @@ namespace Client
          * - Recursively calls itself upon successful transmission to continue sending the file.
          * - If no data remains, it calls callback (`_write_handle`).
          */
-        void write_file(std::unique_ptr<FileHandler>&& file);
+        void write_file();
 
         static constexpr size_t BATCH_SIZE = 1024 * 1024;
 
         Tcp::Writer _tcp_writer;
         Tcp::Reader _tcp_reader;
+        FileService _file_service;
         std::optional<std::function<void()>> _write_handle;
         std::optional<std::function<void(size_t)>> _read_handle;
     };

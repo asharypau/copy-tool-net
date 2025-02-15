@@ -1,7 +1,10 @@
 #include "FileController.h"
 
+#include <string>
+
 #include "../models/FileHeaders.h"
 #include "../models/FileRequest.h"
+#include "Startup.h"
 
 using namespace Server;
 
@@ -29,7 +32,7 @@ void FileController::read_headers(std::shared_ptr<Session> session)
         [this, session](FileHeaders file_headers)
         {
             _request_size -= file_headers.get_content_length();
-            _file_service.create(_client_id, file_headers.name);
+            _file_service.open_create(std::string(Server::CLIENT_STORAGE_PATH) + _client_id, file_headers.name);
 
             read_file(file_headers.confirmation_id, session);
         });

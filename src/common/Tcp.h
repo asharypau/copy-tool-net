@@ -18,7 +18,7 @@ namespace Tcp
     static constexpr size_t HEADER_SIZE = sizeof(size_t);
 
     template <class TModel>
-    concept Is_ISerializable = std::is_base_of_v<ISerializable, TModel>;
+    concept serializable_constraint = std::is_base_of_v<ISerializable, TModel>;
 
     namespace InternalDetail
     {
@@ -171,8 +171,8 @@ namespace Tcp
                 });
         }
 
-        template <Is_ISerializable TModel, class TCallback>
-        void write_async(TModel& model, TCallback&& callback)
+        template <serializable_constraint TSerializableModel, class TCallback>
+        void write_async(TSerializableModel& model, TCallback&& callback)
         {
             std::vector<char> content = model.serialize();
             Tcp::header_type content_length = content.size();
@@ -255,7 +255,7 @@ namespace Tcp
                 });
         }
 
-        template <Is_ISerializable TModel, class TCallback>
+        template <serializable_constraint TSerializableModel, class TCallback>
         void read_async(TCallback&& callback)
         {
             boost::asio::async_read(
@@ -276,7 +276,7 @@ namespace Tcp
                             extract(&content_length, CONTENT_SIZE);
 
                             read(content_length);
-                            TModel model = extract<TModel>(content_length);
+                            TSerializableModel model = extract<TSerializableModel>(content_length);
 
                             callback(model);
                         }
@@ -326,10 +326,10 @@ namespace Tcp
             _buffer.consume(size_in_bytes);
         }
 
-        template <Is_ISerializable TModel>
-        TModel extract(Tcp::header_type content_length)
+        template <serializable_constraint TSerializableModel>
+        TSerializableModel extract(Tcp::header_type content_length)
         {
-            TModel model(content_length);
+            TSerializableModel model(content_length);
             Tcp::header_type consumed_bytes = model.deserialize(_buffer);
             if (consumed_bytes != content_length)
             {

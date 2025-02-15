@@ -10,6 +10,7 @@ using namespace Client;
 FileClient::FileClient(boost::asio::ip::tcp::socket& socket)
     : _tcp_writer(socket),
       _tcp_reader(socket),
+      _file_service(),
       _write_handle(),
       _read_handle()
 {
@@ -53,27 +54,30 @@ void FileClient::write_headers(Message message)
         headers,
         [this, message]
         {
-            write_file(std::make_unique<FileHandler>(message.path));
+            _file_service.open_read(message.path);
+            write_file();
         });
 }
 
-void FileClient::write_file(std::unique_ptr<FileHandler>&& file)
+void FileClient::write_file()
 {
     FileRequest request;
     request.batch.resize(BATCH_SIZE);
-    request.batch_size = file->read(request.batch.data(), BATCH_SIZE);
+    request.batch_size = _file_service.read(request.batch.data(), BATCH_SIZE);
 
     if (request.batch_size > 0)
     {
         _tcp_writer.write_async(
             request,
-            [this, file = std::move(file)]() mutable
+            [this]()
             {
-                write_file(std::move(file));
+                write_file();
             });
     }
     else
     {
+        _file_service.close();
+
         if (_write_handle.has_value())
         {
             _write_handle.value()();

@@ -2,18 +2,14 @@
 
 #include <filesystem>
 
-#include "Startup.h"
-
-using namespace Server;
-
 FileService::FileService()
     : _file()
 {
 }
 
-void FileService::create(const std::string& path, const std::string& name)
+void FileService::open_create(const std::string& path, const std::string& name)
 {
-    _file.open(get_absolute_path(path, name), std::ios::binary);
+    _file.open(get_absolute_path(path, name), std::ios::out | std::ios::binary);
 
     if (!_file)
     {
@@ -21,13 +17,13 @@ void FileService::create(const std::string& path, const std::string& name)
     }
 }
 
-void FileService::open(const std::string& path)
+void FileService::open_read(const std::string& path)
 {
-    _file.open(path, std::ios::binary);
+    _file.open(path, std::ios::in | std::ios::binary);
 
     if (!_file)
     {
-        throw std::runtime_error("Failed to create file: " + path);
+        throw std::runtime_error("Failed to open file: " + path);
     }
 }
 
@@ -54,7 +50,7 @@ std::string FileService::get_absolute_path(const std::string& path, const std::s
 
     for (unsigned int i = 1; i < std::numeric_limits<int>::max(); ++i)
     {
-        result = std::string(Server::CLIENT_STORAGE_PATH) + path + '/' + name + "_v" + std::to_string(i);
+        result = path + '/' + name + "_v" + std::to_string(i);
 
         if (!std::filesystem::exists(result))
         {
