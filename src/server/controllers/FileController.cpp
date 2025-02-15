@@ -1,14 +1,16 @@
 #include "FileController.h"
 
+#include "../models/FileHeaders.h"
+#include "../models/FileRequest.h"
+
 using namespace Server;
 
 FileController::FileController(std::string& client_id, Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer)
     : _client_id(client_id),
       _tcp_reader(tcp_reader),
       _tcp_writer(tcp_writer),
-      _batch(),
-      _request_size(0),
-      _confirmation_id(0)
+      _file_service(),
+      _request_size(0)
 {
 }
 
@@ -23,64 +25,40 @@ void FileController::handle(size_t request_size, std::shared_ptr<Session> sessio
 
 void FileController::read_headers(std::shared_ptr<Session> session)
 {
-    _tcp_reader.read_async(
-        Tcp::HEADER_SIZE * 2,
-        [this, session]() mutable
+    _tcp_reader.read_async<FileHeaders>(
+        [this, session](FileHeaders file_headers)
         {
-            _tcp_reader.extract(&_confirmation_id, Tcp::HEADER_SIZE);
+            _request_size -= file_headers.get_content_length();
+            _file_service.create(_client_id, file_headers.name);
 
-            size_t file_name_size = 0;
-            _tcp_reader.extract(&file_name_size, Tcp::HEADER_SIZE);
-
-            std::string file_name(file_name_size, '\0');
-            _tcp_reader.read(file_name_size);
-            _tcp_reader.extract(file_name.data(), file_name_size);
-
-            _request_size -= Tcp::HEADER_SIZE * 2;
-            _request_size -= file_name_size;
-
-            read_file(std::make_unique<FileHandler>(_client_id, file_name), session);
+            read_file(file_headers.confirmation_id, session);
         });
 }
 
-void FileController::read_file(std::unique_ptr<FileHandler>&& file, std::shared_ptr<Session> session)
+void FileController::read_file(Tcp::header_type confirmation_id, std::shared_ptr<Session> session)
 {
-    _tcp_reader.read_async(
-        Tcp::HEADER_SIZE,
-        [this, file = std::move(file), session]() mutable
+    _tcp_reader.read_async<FileRequest>(
+        [this, confirmation_id, session](FileRequest file_request)
         {
-            size_t batch_size = 0;
-            _tcp_reader.extract(&batch_size, Tcp::HEADER_SIZE);
-
-            if (_batch.size() < batch_size)
-            {
-                _batch.resize(batch_size);
-            }
-
-            _tcp_reader.read(batch_size);
-            _tcp_reader.extract(_batch.data(), batch_size);
-
-            _request_size -= Tcp::HEADER_SIZE;
-            _request_size -= batch_size;
-
-            file->write(_batch.data(), batch_size);
+            _request_size -= file_request.get_content_length();
+            _file_service.write(file_request.batch.data(), file_request.batch_size);
 
             if (_request_size > 0)
             {
-                read_file(std::move(file), session);
+                read_file(confirmation_id, session);
             }
             else
             {
-                write_confirmation(session);
+                _file_service.close();
+                write_confirmation(confirmation_id, session);
             }
         });
 }
 
-void FileController::write_confirmation(std::shared_ptr<Session> session)
+void FileController::write_confirmation(Tcp::header_type confirmation_id, std::shared_ptr<Session> session)
 {
-    _tcp_writer.write(
-        &_confirmation_id,
-        Tcp::HEADER_SIZE,
+    _tcp_writer.write_async(
+        confirmation_id,
         [session]
         {
             session->notify_done();

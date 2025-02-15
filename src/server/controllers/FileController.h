@@ -1,11 +1,8 @@
 #ifndef FILE_CONTROLLER_H
 #define FILE_CONTROLLER_H
 
-#include <cstddef>
-
 #include "../Session.h"
-#include "IController.h"
-#include "services/FileHandler.h"
+#include "services/FileService.h"
 
 namespace Server
 {
@@ -17,15 +14,14 @@ namespace Server
 
     private:
         void read_headers(std::shared_ptr<Session> session);
-        void read_file(std::unique_ptr<FileHandler>&& file, std::shared_ptr<Session> session);
-        void write_confirmation(std::shared_ptr<Session> session);
+        void read_file(Tcp::header_type confirmation_id, std::shared_ptr<Session> session);
+        void write_confirmation(Tcp::header_type confirmation_id, std::shared_ptr<Session> session);
 
         std::string& _client_id;
         Tcp::Reader& _tcp_reader;
         Tcp::Writer& _tcp_writer;
-        std::vector<char> _batch;
+        FileService _file_service;
         size_t _request_size;
-        size_t _confirmation_id;
     };
 }
 

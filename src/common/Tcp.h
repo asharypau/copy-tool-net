@@ -2,13 +2,23 @@
 #define TCP_H
 
 #include <boost/asio.hpp>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "../utils/Logger.h"
 
 namespace Tcp
 {
+    class ISerializable;  // forward declaration
+
+    using header_type = size_t;
+
+    static constexpr size_t CONTENT_SIZE = sizeof(size_t);
     static constexpr size_t HEADER_SIZE = sizeof(size_t);
+
+    template <class TModel>
+    concept Is_ISerializable = std::is_base_of_v<ISerializable, TModel>;
 
     namespace InternalDetail
     {
@@ -129,29 +139,52 @@ namespace Tcp
     public:
         explicit Writer(boost::asio::ip::tcp::socket& socket);
 
-        /**
-         * @brief Initiates an asynchronous write operation on the TCP socket.
-         *
-         * The function operates as follows:
-         * - Calls `boost::asio::async_write` to send the provided data over the socket.
-         * - If the write operation succeeds, the callback is executed.
-         * - If an error occurs, the error is passed to an error handler.
-         * - Catches any exceptions thrown during the process and logs them.
-         *
-         * @tparam TData The type of data to be written.
-         * @tparam TCallback The type of the callback function or callable object to be executed upon completion of the write operation.
-         *
-         * @param data A pointer to the data that should be written to the socket.
-         * @param size_in_bytes The number of bytes to write from the data buffer.
-         * @param callback The callback function or callable object to be invoked once the write operation completes successfully.
-         */
-        template <class TData, class TCallback>
-        void write(const TData* data, size_t size_in_bytes, TCallback&& callback)
+        template <class TModel, class TCallback>
+        void write_async(TModel& model, TCallback&& callback)
         {
+            Tcp::header_type content_length = sizeof(model);
+
+            std::shared_ptr<std::vector<char>> buffer = std::make_shared<std::vector<char>>(Tcp::HEADER_SIZE + content_length);
+            std::memcpy(buffer->data(), &content_length, Tcp::HEADER_SIZE);
+            std::memcpy(buffer->data() + Tcp::HEADER_SIZE, &model, content_length);
+
             boost::asio::async_write(
                 _socket,
-                boost::asio::buffer(data, size_in_bytes),
-                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes) mutable
+                boost::asio::buffer(buffer->data(), buffer->size()),
+                [this, buffer, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes) mutable
+                {
+                    try
+                    {
+                        if (error)
+                        {
+                            InternalDetail::handle_error(error);
+                        }
+                        else
+                        {
+                            callback();
+                        }
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        Logger::error("Error occurred during write: " + std::string(ex.what()));
+                    }
+                });
+        }
+
+        template <Is_ISerializable TModel, class TCallback>
+        void write_async(TModel& model, TCallback&& callback)
+        {
+            std::vector<char> content = model.serialize();
+            Tcp::header_type content_length = content.size();
+
+            std::shared_ptr<std::vector<char>> buffer = std::make_shared<std::vector<char>>(Tcp::HEADER_SIZE + content_length);
+            std::memcpy(buffer->data(), &content_length, Tcp::HEADER_SIZE);
+            std::memcpy(buffer->data() + Tcp::HEADER_SIZE, content.data(), content_length);
+
+            boost::asio::async_write(
+                _socket,
+                boost::asio::buffer(buffer->data(), buffer->size()),
+                [this, buffer, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes) mutable
                 {
                     try
                     {
@@ -188,6 +221,74 @@ namespace Tcp
         Reader(Reader&& other) = delete;
         Reader& operator=(Reader&&) = delete;
 
+        template <class TModel, class TCallback>
+        void read_async(TCallback&& callback)
+        {
+            boost::asio::async_read(
+                _socket,
+                _buffer,
+                boost::asio::transfer_exactly(HEADER_SIZE),
+                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes)
+                {
+                    try
+                    {
+                        if (error)
+                        {
+                            InternalDetail::handle_error(error);
+                        }
+                        else
+                        {
+                            Tcp::header_type content_length = 0;
+                            extract(&content_length, CONTENT_SIZE);
+
+                            read(content_length);
+                            TModel model;
+                            extract(&model, sizeof(TModel));
+
+                            callback(model);
+                        }
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        Logger::error("Error occurred during read: " + std::string(ex.what()));
+                    }
+                });
+        }
+
+        template <Is_ISerializable TModel, class TCallback>
+        void read_async(TCallback&& callback)
+        {
+            boost::asio::async_read(
+                _socket,
+                _buffer,
+                boost::asio::transfer_exactly(HEADER_SIZE),
+                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes)
+                {
+                    try
+                    {
+                        if (error)
+                        {
+                            InternalDetail::handle_error(error);
+                        }
+                        else
+                        {
+                            Tcp::header_type content_length = 0;
+                            extract(&content_length, CONTENT_SIZE);
+
+                            read(content_length);
+                            TModel model = extract<TModel>(content_length);
+
+                            callback(model);
+                        }
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        Logger::error("Error occurred during read: " + std::string(ex.what()));
+                    }
+                });
+        }
+
+    private:
         /**
          * @brief Performs a synchronous read operation on the TCP socket.
          *
@@ -201,47 +302,6 @@ namespace Tcp
         void read(size_t size_in_bytes);
 
         /**
-         * @brief Initiates an asynchronous read operation on the TCP socket.
-         *
-         * The function operates as follows:
-         * - Calls `boost::asio::async_read` to read exactly `size_in_bytes` bytes from the socket.
-         * - If the read operation succeeds, the data is stored in `_buffer` the callback is executed.
-         * - If an error occurs, the error is passed to an error handler.
-         * - Catches any exceptions thrown during the process and logs them.
-         *
-         * @tparam TCallback The type of the callback function or callable object to be executed upon completion of the read operation.
-         *
-         * @param size_in_bytes The number of bytes to read from the socket.
-         * @param callback The callback function or callable object to be invoked once the read operation completes successfully.
-         */
-        template <class TCallback>
-        void read_async(size_t size_in_bytes, TCallback&& callback)
-        {
-            boost::asio::async_read(
-                _socket,
-                _buffer,
-                boost::asio::transfer_exactly(size_in_bytes),
-                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t read_bytes) mutable
-                {
-                    try
-                    {
-                        if (error)
-                        {
-                            InternalDetail::handle_error(error);
-                        }
-                        else
-                        {
-                            callback();
-                        }
-                    }
-                    catch (const std::exception& ex)
-                    {
-                        Logger::error("Error occurred during read: " + std::string(ex.what()));
-                    }
-                });
-        }
-
-        /**
          * @brief Extracts a specified number of bytes from the internal buffer.
          *
          * The function operates as follows:
@@ -251,8 +311,6 @@ namespace Tcp
          * @tparam TData The type of data being extracted.
          * @param data A pointer to the destination memory where the extracted bytes will be stored.
          * @param size_in_bytes The number of bytes to extract from `_buffer`.
-         *
-         * @throws std::runtime_error If `_buffer` contains fewer than `size_in_bytes` bytes.
          */
         template <class TData>
         void extract(TData* data, size_t size_in_bytes)
@@ -268,9 +326,46 @@ namespace Tcp
             _buffer.consume(size_in_bytes);
         }
 
-    private:
+        template <Is_ISerializable TModel>
+        TModel extract(Tcp::header_type content_length)
+        {
+            TModel model(content_length);
+            Tcp::header_type consumed_bytes = model.deserialize(_buffer);
+            if (consumed_bytes != content_length)
+            {
+                throw std::runtime_error("Buffer underflow");
+            }
+
+            _buffer.consume(consumed_bytes);
+
+            return model;
+        }
+
         boost::asio::ip::tcp::socket& _socket;
         boost::asio::streambuf _buffer;
+    };
+
+    class ISerializable
+    {
+    public:
+        ISerializable() = default;
+        ISerializable(Tcp::header_type content_length)
+            : _content_length(content_length)
+        {
+        }
+
+        virtual ~ISerializable() = default;
+
+        virtual std::vector<char> serialize() = 0;
+        virtual Tcp::header_type deserialize(const boost::asio::streambuf& buffer) = 0;
+
+        Tcp::header_type get_content_length()
+        {
+            return _content_length;
+        }
+
+    private:
+        Tcp::header_type _content_length;
     };
 }
 

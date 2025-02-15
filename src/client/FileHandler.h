@@ -30,7 +30,7 @@ namespace Client
         size_t read(char* date, size_t size);
 
     private:
-        std::ifstream _file;
+        std::fstream _file;
     };
 }
 

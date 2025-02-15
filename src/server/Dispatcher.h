@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "../common/Tcp.h"
+#include "../models/RequestMetadata.h"
 #include "controllers/IController.h"
 
 namespace Server
@@ -24,7 +25,7 @@ namespace Server
          * @param endpoint The endpoint associated with the request.
          * @param session A shared pointer to the session handling the request.
          */
-        void handle(size_t request_size, const std::string& endpoint, std::shared_ptr<Session> session);
+        void handle(RequestMetadata& request_metadata, std::shared_ptr<Session> session);
 
     private:
         std::unordered_map<std::string, std::unique_ptr<IController>> _controllers;

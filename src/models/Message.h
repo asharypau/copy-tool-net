@@ -2,7 +2,6 @@
 #define FILE_INFO_H
 
 #include <boost/functional/hash.hpp>
-#include <cstddef>
 #include <string>
 
 class Message

@@ -5,8 +5,6 @@
 
 namespace Endpoints
 {
-    static constexpr size_t LENGTH = 128;
-
     static constexpr std::string_view FILE = "file";
 }
 

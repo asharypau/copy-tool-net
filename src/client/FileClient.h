@@ -4,7 +4,6 @@
 #include <functional>
 #include <memory>
 #include <optional>
-#include <vector>
 
 #include "../common/Tcp.h"
 #include "../models/Message.h"
@@ -81,12 +80,8 @@ namespace Client
 
         static constexpr size_t BATCH_SIZE = 1024 * 1024;
 
-        std::vector<char> _headers;
-        std::vector<char> _batch;
-
         Tcp::Writer _tcp_writer;
         Tcp::Reader _tcp_reader;
-
         std::optional<std::function<void()>> _write_handle;
         std::optional<std::function<void(size_t)>> _read_handle;
     };

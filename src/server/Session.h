@@ -35,7 +35,6 @@ namespace Server
         Tcp::Reader _tcp_reader;
         Tcp::Writer _tcp_writer;
         Dispatcher _dispatcher;
-        std::string _endpoint;
     };
 }
 
