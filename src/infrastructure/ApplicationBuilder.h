@@ -3,8 +3,8 @@
 
 #include <memory>
 
-#include "../common/IApplication.h"
-#include "../models/CmdArgs.h"
+#include "../utils/CmdArgs.h"
+#include "IApplication.h"
 
 class ApplicationBuilder
 {

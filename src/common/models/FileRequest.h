@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../common/Tcp.h"
+#include "../network/tcp/ISerializable.h"
 
 class FileRequest : public Tcp::ISerializable
 {
@@ -15,12 +15,12 @@ public:
     {
     }
 
-    std::vector<char> serialize() override
+    std::vector<std::byte> serialize() override
     {
         size_t offset = 0;
-        std::vector<char> buffer(Tcp::HEADER_SIZE + batch_size);
+        std::vector<std::byte> buffer(Tcp::HEADER_SIZE + batch_size);
 
-        std::memcpy(buffer.data() + offset, reinterpret_cast<const char*>(&batch_size), Tcp::HEADER_SIZE);
+        std::memcpy(buffer.data() + offset, &batch_size, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
         std::memcpy(buffer.data() + offset, batch.data(), batch_size);

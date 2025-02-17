@@ -46,5 +46,6 @@ void Startup::accept()
 
 void Startup::create_client_storage()
 {
-    std::filesystem::create_directory(std::string(Server::CLIENT_STORAGE_PATH) + std::to_string(CLIENT_ID));
+    std::string path = std::string(Server::CLIENT_STORAGE_PATH) + std::to_string(CLIENT_ID);
+    std::filesystem::create_directory(path);
 }

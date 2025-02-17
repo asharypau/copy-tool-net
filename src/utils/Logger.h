@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "../models/Colors.h"
+#include "Colors.h"
 
 class Logger
 {

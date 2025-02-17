@@ -4,9 +4,10 @@
 #include <functional>
 #include <optional>
 
-#include "../common/FileService.h"
-#include "../common/Tcp.h"
-#include "../models/Message.h"
+#include "../common/models/Message.h"
+#include "../common/network/tcp/Reader.h"
+#include "../common/network/tcp/Writer.h"
+#include "../common/services/FileService.h"
 
 namespace Client
 {

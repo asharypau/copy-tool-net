@@ -5,8 +5,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "../common/Tcp.h"
-#include "../models/RequestMetadata.h"
+#include "../common/models/RequestMetadata.h"
+#include "../common/network/tcp/Reader.h"
+#include "../common/network/tcp/Writer.h"
 #include "controllers/IController.h"
 
 namespace Server

@@ -2,7 +2,9 @@
 #define FILE_CONTROLLER_H
 
 #include "../Session.h"
-#include "../common/FileService.h"
+#include "../common/network/tcp/Reader.h"
+#include "../common/network/tcp/Writer.h"
+#include "../common/services/FileService.h"
 
 namespace Server
 {

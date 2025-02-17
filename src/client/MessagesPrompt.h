@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../models/Message.h"
+#include "../common/models/Message.h"
 namespace Client
 {
 

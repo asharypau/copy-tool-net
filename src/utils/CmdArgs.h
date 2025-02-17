@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "ApplicationType.h"
+#include "../infrastructure/ApplicationType.h"
 
 struct CmdArgs
 {

@@ -1,9 +1,10 @@
 #ifndef FILE_HEADER_H
 #define FILE_HEADER_H
 
+#include <cstddef>
 #include <string>
 
-#include "../common/Tcp.h"
+#include "../network/tcp/ISerializable.h"
 
 class FileHeaders : public Tcp::ISerializable
 {
@@ -15,16 +16,16 @@ public:
     {
     }
 
-    std::vector<char> serialize() override
+    std::vector<std::byte> serialize() override
     {
         size_t offset = 0;
-        std::vector<char> buffer(Tcp::HEADER_SIZE * 2 + name.size());
+        std::vector<std::byte> buffer(Tcp::HEADER_SIZE * 2 + name.size());
 
-        std::memcpy(buffer.data() + offset, reinterpret_cast<const char*>(&confirmation_id), Tcp::HEADER_SIZE);
+        std::memcpy(buffer.data() + offset, &confirmation_id, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
         Tcp::header_t name_size = name.size();
-        std::memcpy(buffer.data() + offset, reinterpret_cast<const char*>(&name_size), Tcp::HEADER_SIZE);
+        std::memcpy(buffer.data() + offset, &name_size, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
         std::memcpy(buffer.data() + offset, name.data(), name_size);
@@ -42,12 +43,11 @@ public:
         offset += Tcp::HEADER_SIZE;
 
         const Tcp::header_t* raw_name_size = boost::asio::buffer_cast<const Tcp::header_t*>(buffer.data() + offset);
-        const Tcp::header_t name_size = *raw_name_size;
         offset += Tcp::HEADER_SIZE;
 
         const char* raw_name = boost::asio::buffer_cast<const char*>(buffer.data() + offset);
-        name.assign(raw_name, name_size);
-        offset += name_size;
+        name.assign(raw_name, *raw_name_size);
+        offset += *raw_name_size;
 
         return offset;
     }

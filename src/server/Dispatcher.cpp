@@ -1,6 +1,6 @@
 #include "Dispatcher.h"
 
-#include "../models/Endpoints.h"
+#include "../common/network/Endpoints.h"
 #include "Session.h"
 #include "controllers/FileController.h"
 

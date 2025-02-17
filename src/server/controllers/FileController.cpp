@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "../models/FileHeaders.h"
-#include "../models/FileRequest.h"
+#include "../common/models/FileHeaders.h"
+#include "../common/models/FileRequest.h"
 #include "Startup.h"
 
 using namespace Server;

@@ -5,7 +5,7 @@
 #include <queue>
 #include <vector>
 
-#include "../models/Message.h"
+#include "../common/models/Message.h"
 #include "FileClient.h"
 
 namespace Client

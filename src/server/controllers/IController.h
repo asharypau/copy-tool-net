@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "../common/Tcp.h"
+#include "../common/network/tcp/Constants.h"
 
 namespace Server
 {

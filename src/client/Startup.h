@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <string>
 
-#include "../common/IApplication.h"
+#include "../infrastructure/IApplication.h"
 #include "MessagesPrompt.h"
 #include "MessagesQueueHandler.h"
 

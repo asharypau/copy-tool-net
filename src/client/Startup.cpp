@@ -2,7 +2,7 @@
 
 #include <thread>
 
-#include "../common/Tcp.h"
+#include "../common/network/tcp/Connector.h"
 #include "../utils/Logger.h"
 
 using namespace Client;

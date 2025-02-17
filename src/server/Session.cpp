@@ -1,6 +1,8 @@
 #include "Session.h"
 
-#include "../models/RequestMetadata.h"
+#include <string>
+
+#include "../common/models/RequestMetadata.h"
 
 using namespace Server;
 

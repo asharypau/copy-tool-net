@@ -3,8 +3,8 @@
 
 #include <boost/asio.hpp>
 
-#include "../common/IApplication.h"
-#include "../common/Tcp.h"
+#include "../common/network/tcp/Acceptor.h"
+#include "../infrastructure/IApplication.h"
 
 namespace Server
 {

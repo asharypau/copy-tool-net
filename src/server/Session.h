@@ -5,7 +5,8 @@
 #include <memory>
 #include <string>
 
-#include "../common/Tcp.h"
+#include "../common/network/tcp/Reader.h"
+#include "../common/network/tcp/Writer.h"
 #include "Dispatcher.h"
 
 namespace Server

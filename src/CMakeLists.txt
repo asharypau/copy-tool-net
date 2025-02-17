@@ -4,9 +4,8 @@ add_subdirectory(client)
 add_executable(
     CopyToolNet
     main.cpp
-    common/ApplicationBuilder.cpp
-    common/Tcp.cpp
-    common/FileService.cpp
+    infrastructure/ApplicationBuilder.cpp
+    common/services/FileService.cpp
     utils/CmdArgsParser.cpp
 )
 
