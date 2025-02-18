@@ -26,9 +26,9 @@ namespace Tcp
          * - If an error occurs, the error is passed to an error handler.
          * - Catches any exceptions thrown during the process and logs them..
          *
-         * @tparam TCallback The type of the callback function or callable object that is executed when a connection is successfully accepted.
+         * @tparam TCallback The type of the callback function to be invoked upon completion.
          *
-         * @param callback The callback function or callable object to be invoked once a connection is accepted.
+         * @param callback The callback function to be executed once the operation completes.
          */
         template <class TCallback>
         void accept(TCallback&& callback)

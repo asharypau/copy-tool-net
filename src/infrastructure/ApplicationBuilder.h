@@ -12,7 +12,7 @@ public:
     /**
      * @brief Builds an application of the specified type.
      *
-     * @param type The type of application to build.
+     * @param args The cmd args.
      * @return std::unique_ptr<IApplication> A unique pointer to the built application.
      */
     std::unique_ptr<IApplication> build(CmdArgs args) const;

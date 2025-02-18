@@ -22,8 +22,7 @@ namespace Server
         /**
          * @brief Handles an incoming request by dispatching it to the appropriate controller.
          *
-         * @param request_size The size of the incoming request in bytes.
-         * @param endpoint The endpoint associated with the request.
+         * @param request_metadata Request metadata.
          * @param session A shared pointer to the session handling the request.
          */
         void handle(RequestMetadata& request_metadata, std::shared_ptr<Session> session);

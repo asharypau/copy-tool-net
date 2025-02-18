@@ -17,7 +17,15 @@ namespace Client
         explicit FileClient(boost::asio::ip::tcp::socket& socket);
 
         /**
-         * @brief Writes message via the TCP writer.
+         * @brief Writes asynchronously message via the TCP writer.
+         *
+         * The function operates as follows:
+         * - Calculates the number of batches required to send the file message based on the message size and batch size.
+         * - Constructs a `RequestMetadata` object, setting the endpoint, size, and other necessary details.
+         * - Calls `write_async` to asynchronously send the request metadata.
+         * - Upon successful completion of the write operation, triggers the `write_headers` function to send the file headers.
+         *
+         * @param message The file message to be written asynchronously.
          */
         void write(Message message);
 
@@ -48,33 +56,25 @@ namespace Client
 
     private:
         /**
-         * @brief Prepares the headers and writes their asynchronously via the TCP writer.
-         *
-         * The header format is as follows:
-         * - 1st block: File id (`message.id`).
-         * - 2nd block: File name size (`file_name_size`).
-         * - 3rd block: File name (`message.name`).
-         *
-         * @param message The message containing the file information to be sent.
+         * @brief Initiates an asynchronous write operation to send file headers.
          *
          * The function operates as follows:
-         * - Resizes the header buffer based on the file information.
-         * - Copies the file id, name size and name into the header buffer.
-         * - Asynchronously writes the headers over TCP.
-         * - Once the headers are written, it calls `write_file` to transmit the file data.
+         * - Constructs `FileHeaders` containing the confirmation ID and file name from the message.
+         * - Calls `write_async` to asynchronously send the constructed headers.
+         * - Upon successful completion of the write operation, opens the file for reading using `_file_service` and initiates the file writing process.
+         *
+         * @param message The message containing file details (confirmation ID, file name, and path).
          */
         void write_headers(Message message);
 
         /**
-         * @brief Reads data from a file and writes it asynchronously via the TCP writer.
-         *
-         * @param file A unique pointer to the `FileHandler` containing the file to be read and sent.
+         * @brief Reads file data in batches and writes it asynchronously to the TCP socket.
          *
          * The function operates as follows:
-         * - Reads up to `BATCH_SIZE` bytes from the file.
-         * - If data was read -> send the data over TCP.
-         * - Recursively calls itself upon successful transmission to continue sending the file.
-         * - If no data remains, it calls callback (`_write_handle`).
+         * - Reads a batch of data from the file using `_file_service`.
+         * - If data is successfully read (batch size > 0), it asynchronously writes the data using `write_async`.
+         * - After writing, it recursively calls `write_file` to continue sending the next batch.
+         * - If no more data is available, it closes the file and invokes the provided callback (if available) to signal the completion of the write process.
          */
         void write_file();
 

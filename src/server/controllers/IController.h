@@ -12,6 +12,12 @@ namespace Server
     class IController
     {
     public:
+        /**
+         * @brief Handles an incoming request by initializing the read operation.
+         *
+         * @param request_size The size of the incoming request in bytes.
+         * @param session A shared pointer to the session handling the request.
+         */
         virtual void handle(Tcp::header_t request_size, std::shared_ptr<Session> session) = 0;
 
         virtual ~IController() = default;

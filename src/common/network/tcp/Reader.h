@@ -27,6 +27,21 @@ namespace Tcp
         Reader(Reader&& other) = delete;
         Reader& operator=(Reader&&) = delete;
 
+        /**
+         * @brief Performs an asynchronous read operation on the TCP socket.
+         *
+         * The function operates as follows:
+         * - Initiates an asynchronous read operation to retrieve a fixed-size header (`HEADER_SIZE` bytes).
+         * - Extracts the content length from the received header.
+         * - Reads the remaining data based on the extracted content length.
+         * - Extracts the data into a `TModel` object.
+         * - Calls the provided callback function with the extracted model.
+         * - Catches any exceptions thrown during the process and logs them..
+         *
+         * @tparam TModel The type of the model to be extracted from the received data.
+         * @tparam TCallback The type of the callback function to be invoked upon completion.
+         * @param callback The callback function to be executed once the operation completes.
+         */
         template <class TModel, class TCallback>
         void read_async(TCallback&& callback)
         {
@@ -61,6 +76,22 @@ namespace Tcp
                 });
         }
 
+        /**
+         * @brief Performs an asynchronous read operation on the TCP socket.
+         *
+         * The function operates as follows:
+         * - Initiates an asynchronous read operation to retrieve a fixed-size header (`HEADER_SIZE` bytes).
+         * - Extracts the content length from the received header.
+         * - Reads the remaining data based on the extracted content length.
+         * - Deserializes the received data into a `TSerializableModel` object.
+         * - Calls the provided callback function with the extracted model.
+         * - Catches any exceptions thrown during the process and logs them..
+         *
+         * @tparam TSerializableModel The type of the model to be extracted from the received data, constrained to be serializable.
+         * @tparam TCallback The type of the callback function to be invoked upon completion.
+         * @param model The serializable model instance to be read on the socket.
+         * @param callback The callback function to be executed once the operation completes.
+         */
         template <Tcp::Utils::serializable_constraint TSerializableModel, class TCallback>
         void read_async(TCallback&& callback)
         {
@@ -126,6 +157,7 @@ namespace Tcp
          * @tparam TData The type of data being extracted.
          * @param data A pointer to the destination memory where the extracted bytes will be stored.
          * @param size_in_bytes The number of bytes to extract from `_buffer`.
+         * @throws std::runtime_error If the buffer does not contain enough data.
          */
         template <class TData>
         void extract(TData* data, size_t size_in_bytes)
@@ -141,6 +173,20 @@ namespace Tcp
             _buffer.consume(size_in_bytes);
         }
 
+        /**
+         * @brief Extracts and deserializes a model from the internal buffer.
+         *
+         * The function operates as follows:
+         * - Creates an instance of `TSerializableModel` with the specified content length.
+         * - Calls the model's `deserialize` method to extract data from the buffer.
+         * - Consumes (removes) the extracted bytes from `_buffer`.
+         * - Returns the deserialized model.
+         *
+         * @tparam TSerializableModel The type of the model to extract, constrained to be serializable.
+         * @param content_length The expected length of the serialized data in bytes.
+         * @return The deserialized `TSerializableModel` instance.
+         * @throws std::runtime_error If the buffer does not contain enough data or deserialization fails.
+         */
         template <Tcp::Utils::serializable_constraint TSerializableModel>
         TSerializableModel extract(Tcp::header_t content_length)
         {

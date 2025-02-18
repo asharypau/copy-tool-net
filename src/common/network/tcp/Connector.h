@@ -27,12 +27,12 @@ namespace Tcp
          * - If the connection fails, the error is passed to an error handler.
          * - Catches any exceptions thrown during the process and logs them.
          *
-         * @tparam TCallback The type of the callback function or callable object that is executed upon successful connection.
+         * @tparam TCallback The type of the callback function to be invoked upon completion.
          *
          * @param port The port number to which the connection should be made.
          * @param host The host (IP address or domain) of the TCP server to connect to.
          * @param socket The `boost::asio::ip::tcp::socket` object used for the connection.
-         * @param callback The callback function or callable object to be invoked once the connection is established.
+         * @param callback The callback function to be executed once the operation completes.
          */
         template <class TCallback>
         static void connect(unsigned short port, std::string host, boost::asio::ip::tcp::socket& socket, TCallback&& callback)
