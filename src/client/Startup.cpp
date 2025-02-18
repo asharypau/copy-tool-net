@@ -20,27 +20,41 @@ Startup::Startup(unsigned short port, std::string host)
 
 Startup::~Startup()
 {
-    Logger::info("Client stopped");
-
     _socket.close();
 }
 
 void Startup::run()
 {
-    Logger::info("Client started");
-
-    Tcp::Connector::connect(
-        _port,
-        _host,
-        _socket,
-        [this]
-        {
-            run_user_thread();
-        });
-
-    while (!_stop)
+    try
     {
-        _context.run();
+        Logger::info("Client started");
+
+        Tcp::Connector::connect(
+            _port,
+            _host,
+            _socket,
+            [this](const boost::system::error_code& error)
+            {
+                if (error)
+                {
+                    _stop = true;
+                }
+                else
+                {
+                    run_user_thread();
+                }
+            });
+
+        while (!_stop)
+        {
+            _context.run();
+        }
+
+        Logger::info("Client stopped");
+    }
+    catch (const std::exception& ex)
+    {
+        Logger::error(ex.what());
     }
 }
 

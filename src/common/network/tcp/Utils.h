@@ -15,18 +15,7 @@ namespace Tcp
 
         inline void handle_error(const boost::system::error_code& error)
         {
-            if (error == boost::asio::error::eof)
-            {
-                Logger::info("Disconnected.");
-            }
-            else if (error == boost::asio::error::connection_reset)
-            {
-                Logger::error("The connection was reset by the remote side.");
-            }
-            else
-            {
-                Logger::error("An unknown error occurred.");
-            }
+            Logger::error("Operation returns and error: " + error.message());
         }
     }
 }

@@ -1,5 +1,6 @@
 #include "Session.h"
 
+#include <format>
 #include <string>
 
 #include "../common/models/RequestMetadata.h"
@@ -13,12 +14,12 @@ Session::Session(size_t client_id, boost::asio::ip::tcp::socket socket)
       _tcp_writer(_socket),
       _dispatcher(_client_id, _tcp_reader, _tcp_writer)
 {
-    Logger::info("Client connected: " + _client_id);
+    Logger::info(std::format("Client {} connected", _client_id));
 }
 
 Session::~Session()
 {
-    Logger::info("Client disconnected: " + _client_id);
+    Logger::info(std::format("Client {} disconnected", _client_id));
 
     _socket.close();
 }

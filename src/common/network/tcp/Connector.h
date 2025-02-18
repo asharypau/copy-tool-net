@@ -60,9 +60,9 @@ namespace Tcp
                         else
                         {
                             Logger::info("Connected by " + host + ":" + std::to_string(port));
-
-                            callback();
                         }
+
+                        callback(error);
                     }
                     catch (const std::exception& ex)
                     {
