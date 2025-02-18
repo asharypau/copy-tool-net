@@ -7,13 +7,14 @@ FileService::FileService()
 {
 }
 
-void FileService::open_create(const std::string& path, const std::string& name)
+void FileService::open_create(const std::string& path)
 {
-    _file.open(get_absolute_path(path, name), std::ios::out | std::ios::binary);
+    const std::string version = get_version(path);
+    _file.open(path + version, std::ios::out | std::ios::binary);
 
     if (!_file)
     {
-        throw std::runtime_error("Failed to create file: " + name);
+        throw std::runtime_error("Failed to create file: " + path);
     }
 }
 
@@ -44,15 +45,15 @@ size_t FileService::read(char* data, size_t size)
     return _file.gcount();
 }
 
-std::string FileService::get_absolute_path(const std::string& path, const std::string& name)
+std::string FileService::get_version(const std::string& path)
 {
     std::string result;
 
     for (unsigned int i = 1; i < std::numeric_limits<int>::max(); ++i)
     {
-        result = path + '/' + name + "_v" + std::to_string(i);
+        result = "_v" + std::to_string(i);
 
-        if (!std::filesystem::exists(result))
+        if (!std::filesystem::exists(path + result))
         {
             break;
         }

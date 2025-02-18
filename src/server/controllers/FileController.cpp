@@ -1,5 +1,6 @@
 #include "FileController.h"
 
+#include <format>
 #include <string>
 
 #include "../common/models/FileHeaders.h"
@@ -32,7 +33,9 @@ void FileController::read_headers(std::shared_ptr<Session> session)
         [this, session](FileHeaders file_headers)
         {
             _request_size -= file_headers.get_content_length();
-            _file_service.open_create(std::string(Server::CLIENT_STORAGE_PATH) + _client_id, file_headers.name);
+
+            std::string path = std::format("{}/{}/{}", std::string(Server::CLIENT_STORAGE_PATH), _client_id, file_headers.name);
+            _file_service.open_create(path);
 
             read_file(file_headers.confirmation_id, session);
         });
