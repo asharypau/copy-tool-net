@@ -14,7 +14,7 @@ Dispatcher::Dispatcher(std::string& client_id, Tcp::Reader& tcp_reader, Tcp::Wri
 
 void Dispatcher::handle(RequestMetadata& request_metadata, std::shared_ptr<Session> session)
 {
-    std::unordered_map<std::string, std::unique_ptr<IController>>::iterator it = _controllers.find(request_metadata.endpoint);
+    const std::unordered_map<std::string, std::unique_ptr<IController>>::iterator& it = _controllers.find(request_metadata.endpoint);
     if (it != _controllers.end())
     {
         it->second->handle(request_metadata.size, session);
