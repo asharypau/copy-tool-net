@@ -54,6 +54,11 @@ namespace Tcp
                 });
         }
 
+        boost::asio::awaitable<boost::asio::ip::tcp::socket> accept()
+        {
+            co_return co_await _acceptor.async_accept(boost::asio::use_awaitable);
+        }
+
     private:
         boost::asio::ip::tcp::acceptor _acceptor;
     };

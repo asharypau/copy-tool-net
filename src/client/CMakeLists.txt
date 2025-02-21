@@ -6,6 +6,11 @@ add_library(
     FileClient.cpp
 )
 
-target_link_libraries(Client PRIVATE Boost::asio)
+target_link_libraries(
+    Client PRIVATE
+    Boost::system
+    Boost::asio
+    Boost::beast
+)
 
 target_include_directories(Client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

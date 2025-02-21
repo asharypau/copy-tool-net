@@ -2,6 +2,7 @@
 #define TCP_READER_H
 
 #include <boost/asio.hpp>
+#include <boost/beast.hpp>
 #include <string>
 
 #include "../../../utils/Logger.h"
@@ -47,9 +48,9 @@ namespace Tcp
         {
             boost::asio::async_read(
                 _socket,
-                _buffer,
+                _buffer.prepare(HEADER_SIZE),
                 boost::asio::transfer_exactly(HEADER_SIZE),
-                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t)
+                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t size)
                 {
                     try
                     {
@@ -97,9 +98,9 @@ namespace Tcp
         {
             boost::asio::async_read(
                 _socket,
-                _buffer,
+                _buffer.prepare(HEADER_SIZE),
                 boost::asio::transfer_exactly(HEADER_SIZE),
-                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t)
+                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t size)
                 {
                     try
                     {
@@ -139,7 +140,7 @@ namespace Tcp
         void internal_read(size_t size_in_bytes)
         {
             boost::system::error_code error;
-            size_t read_bytes = boost::asio::read(_socket, _buffer, boost::asio::transfer_exactly(size_in_bytes), error);
+            size_t read_bytes = boost::asio::read(_socket, _buffer.prepare(size_in_bytes), boost::asio::transfer_exactly(size_in_bytes), error);
 
             if (error)
             {
@@ -151,7 +152,7 @@ namespace Tcp
          * @brief Extracts a specified number of bytes from the internal buffer.
          *
          * The function operates as follows:
-         * - Uses `boost::asio::buffer_cast` to obtain a raw pointer to the buffer data.
+         * - Uses `static_cast` to obtain a raw pointer to the buffer data.
          * - Consumes (removes) the extracted bytes from `_buffer`.
          *
          * @tparam TData The type of data being extracted.
@@ -162,13 +163,8 @@ namespace Tcp
         template <class TData>
         void extract(TData* data, size_t size_in_bytes)
         {
-            if (_buffer.size() < size_in_bytes)
-            {
-                throw std::runtime_error("Buffer underflow");
-            }
-
-            const TData* raw_data = boost::asio::buffer_cast<const TData*>(_buffer.data());
-            std::memcpy(data, raw_data, size_in_bytes);
+            char* begin = static_cast<char*>(_buffer.data().data());
+            std::memcpy(data, begin, size_in_bytes);
 
             _buffer.consume(size_in_bytes);
         }
@@ -190,11 +186,6 @@ namespace Tcp
         template <Tcp::Utils::serializable_constraint TSerializableModel>
         TSerializableModel extract(Tcp::header_t content_length)
         {
-            if (_buffer.size() < content_length)
-            {
-                throw std::runtime_error("Buffer underflow");
-            }
-
             TSerializableModel model(content_length);
             Tcp::header_t consumed_bytes = model.deserialize(_buffer);
             if (consumed_bytes != content_length)
@@ -209,7 +200,7 @@ namespace Tcp
         }
 
         boost::asio::ip::tcp::socket& _socket;
-        boost::asio::streambuf _buffer;
+        boost::beast::flat_buffer _buffer;
     };
 }
 

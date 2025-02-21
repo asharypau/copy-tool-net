@@ -31,19 +31,18 @@ public:
         return std::move(buffer);
     }
 
-    Tcp::header_t deserialize(const boost::asio::streambuf& buffer) override
+    Tcp::header_t deserialize(boost::beast::flat_buffer& buffer) override
     {
         Tcp::header_t offset = 0;
+        char* begin = static_cast<char*>(buffer.data().data());
 
         // batch_size
-        const Tcp::header_t* raw_batch_size = boost::asio::buffer_cast<const Tcp::header_t*>(buffer.data() + offset);
-        std::memcpy(&batch_size, raw_batch_size, Tcp::HEADER_SIZE);
+        std::memcpy(&batch_size, begin + offset, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
         // batch
-        const char* raw_batch = boost::asio::buffer_cast<const char*>(buffer.data() + offset);
         batch.resize(batch_size);
-        std::memcpy(batch.data(), raw_batch, batch_size);
+        std::memcpy(batch.data(), begin + offset, batch_size);
         offset += batch_size;
 
         return offset;

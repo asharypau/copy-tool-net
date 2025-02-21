@@ -38,23 +38,23 @@ public:
         return std::move(buffer);
     }
 
-    Tcp::header_t deserialize(const boost::asio::streambuf& buffer) override
+    Tcp::header_t deserialize(boost::beast::flat_buffer& buffer) override
     {
         Tcp::header_t offset = 0;
+        char* begin = static_cast<char*>(buffer.data().data());
 
         // size
-        const Tcp::header_t* raw_size = boost::asio::buffer_cast<const Tcp::header_t*>(buffer.data() + offset);
-        std::memcpy(&size, raw_size, Tcp::HEADER_SIZE);
+        std::memcpy(&size, begin + offset, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
         // endpoint size
-        const Tcp::header_t* raw_endpoint_size = boost::asio::buffer_cast<const Tcp::header_t*>(buffer.data() + offset);
+        Tcp::header_t endpoint_size = 0;
+        std::memcpy(&endpoint_size, begin + offset, Tcp::HEADER_SIZE);
         offset += Tcp::HEADER_SIZE;
 
         // endpoint
-        const char* raw_endpoint = boost::asio::buffer_cast<const char*>(buffer.data() + offset);
-        endpoint.assign(raw_endpoint, *raw_endpoint_size);
-        offset += *raw_endpoint_size;
+        endpoint.assign(begin + offset, endpoint_size);
+        offset += endpoint_size;
 
         return offset;
     }
