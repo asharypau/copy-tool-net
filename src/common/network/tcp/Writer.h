@@ -60,6 +60,23 @@ namespace Tcp
             internal_write_async(content_length, content.data(), std::forward<TCallback>(callback));
         }
 
+        template <class TModel>
+        boost::asio::awaitable<void> write_async(TModel& model)
+        {
+            Tcp::header_t content_length = sizeof(model);
+
+            co_await internal_write_async(content_length, &model);
+        }
+
+        template <Tcp::Utils::serializable_constraint TSerializableModel>
+        boost::asio::awaitable<void> write_async(TSerializableModel& model)
+        {
+            std::vector<std::byte> content = model.serialize();
+            Tcp::header_t content_length = content.size();
+
+            co_await internal_write_async(content_length, content.data());
+        }
+
     private:
         boost::asio::ip::tcp::socket& _socket;
 
@@ -127,6 +144,22 @@ namespace Tcp
                         Logger::error("Error occurred during write: " + std::string(ex.what()));
                     }
                 });
+        }
+
+        template <class TContent>
+        boost::asio::awaitable<void> internal_write_async(Tcp::header_t content_length, const TContent* raw_content)
+        {
+            try
+            {
+                std::shared_ptr<std::vector<std::byte>> buffer = get_buffer(content_length, raw_content);
+                co_await boost::asio::async_write(_socket, boost::asio::buffer(*buffer), boost::asio::use_awaitable);
+            }
+            catch (const std::exception& ex)
+            {
+                Logger::error("Error occurred during write");
+
+                throw;
+            }
         }
     };
 }

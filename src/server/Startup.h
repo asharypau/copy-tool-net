@@ -5,6 +5,7 @@
 
 #include "../common/network/tcp/Acceptor.h"
 #include "../infrastructure/IApplication.h"
+#include "SessionManager.h"
 
 namespace Server
 {
@@ -31,10 +32,11 @@ namespace Server
          * connection. When a new connection is accepted, it creates a new session
          * for the client and starts it.
          */
-        void accept();
+        boost::asio::awaitable<void> accept();
 
         boost::asio::io_context _context;
         Tcp::Acceptor _acceptor;
+        SessionManager _session_manager;
     };
 }
 

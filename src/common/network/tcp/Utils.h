@@ -2,6 +2,7 @@
 #define TCP_UTILS_H
 
 #include <boost/asio.hpp>
+#include <format>
 
 #include "../../../utils/Logger.h"
 #include "ISerializable.h"
@@ -15,7 +16,7 @@ namespace Tcp
 
         inline void handle_error(const boost::system::error_code& error)
         {
-            Logger::error("Operation returns and error: " + error.message());
+            Logger::error(std::format("Operation returns and error: {}", error.message()));
         }
     }
 }

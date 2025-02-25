@@ -3,9 +3,11 @@
 
 #include <boost/asio.hpp>
 #include <string>
+#include <utility>
 
 #include "../../../utils/Logger.h"
 #include "Utils.h"
+#include "boost/asio/use_awaitable.hpp"
 
 namespace Tcp
 {
@@ -56,7 +58,19 @@ namespace Tcp
 
         boost::asio::awaitable<boost::asio::ip::tcp::socket> accept()
         {
-            co_return co_await _acceptor.async_accept(boost::asio::use_awaitable);
+            try
+            {
+                boost::asio::ip::tcp::socket socket(_acceptor.get_executor());
+                co_await _acceptor.async_accept(socket, boost::asio::use_awaitable);
+
+                co_return std::move(socket);
+            }
+            catch (const std::exception& ex)
+            {
+                Logger::error("Error occurred during accept");
+
+                throw;
+            }
         }
 
     private:

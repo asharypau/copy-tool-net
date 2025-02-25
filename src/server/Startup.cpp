@@ -4,13 +4,13 @@
 #include <string>
 
 #include "../utils/Logger.h"
-#include "Session.h"
 
 using namespace Server;
 
 Startup::Startup(unsigned short port)
     : _context(),
-      _acceptor(port, _context)
+      _acceptor(port, _context),
+      _session_manager(_context)
 {
 }
 
@@ -20,7 +20,7 @@ void Startup::run()
     {
         Logger::info("Server started");
 
-        accept();
+        boost::asio::co_spawn(_context, accept(), boost::asio::detached);
         _context.run();
 
         Logger::info("Server stopped");
@@ -31,17 +31,16 @@ void Startup::run()
     }
 }
 
-void Startup::accept()
+boost::asio::awaitable<void> Startup::accept()
 {
-    _acceptor.accept(
-        [this](boost::asio::ip::tcp::socket socket)
-        {
-            ++CLIENT_ID;
-            create_client_storage();
-            std::make_shared<Session>(CLIENT_ID, std::move(socket))->run();
+    while (true)
+    {
+        auto socket = co_await _acceptor.accept();
 
-            accept();  // wait for another connection
-        });
+        ++CLIENT_ID;
+        create_client_storage();
+        _session_manager.start_new(CLIENT_ID, std::move(socket));
+    }
 }
 
 void Startup::create_client_storage()

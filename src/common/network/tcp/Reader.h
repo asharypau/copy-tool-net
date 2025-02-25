@@ -46,33 +46,20 @@ namespace Tcp
         template <class TModel, class TCallback>
         void read_async(TCallback&& callback)
         {
-            boost::asio::async_read(
-                _socket,
-                _buffer.prepare(HEADER_SIZE),
-                boost::asio::transfer_exactly(HEADER_SIZE),
-                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t size)
+            read_header_async(
+                [this, callback = std::forward<TCallback>(callback)](Tcp::header_t content_length)
                 {
                     try
                     {
-                        if (error)
-                        {
-                            Tcp::Utils::handle_error(error);
-                        }
-                        else
-                        {
-                            Tcp::header_t content_length = 0;
-                            extract(&content_length, CONTENT_SIZE);
+                        internal_read(content_length);
+                        TModel model;
+                        extract(&model, sizeof(TModel));
 
-                            internal_read(content_length);
-                            TModel model;
-                            extract(&model, sizeof(TModel));
-
-                            callback(model);
-                        }
+                        callback(model);
                     }
                     catch (const std::exception& ex)
                     {
-                        Logger::error("Error occurred during read: " + std::string(ex.what()));
+                        Logger::error("Error occurred during TModel read: " + std::string(ex.what()));
                     }
                 });
         }
@@ -96,11 +83,73 @@ namespace Tcp
         template <Tcp::Utils::serializable_constraint TSerializableModel, class TCallback>
         void read_async(TCallback&& callback)
         {
+            read_header_async(
+                [this, callback = std::forward<TCallback>(callback)](Tcp::header_t content_length)
+                {
+                    try
+                    {
+                        internal_read(content_length);
+                        TSerializableModel model = extract<TSerializableModel>(content_length);
+
+                        callback(model);
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        Logger::error("Error occurred during TSerializableModel read: " + std::string(ex.what()));
+                    }
+                });
+        }
+
+        template <class TModel>
+        boost::asio::awaitable<TModel> read_async()
+        {
+            try
+            {
+                Tcp::header_t content_length = co_await read_header_async();
+
+                internal_read(content_length);
+                TModel model;
+                extract(&model, sizeof(TModel));
+
+                co_return model;
+            }
+            catch (const boost::system::system_error& ex)
+            {
+                Tcp::Utils::handle_error(ex.code());
+
+                throw;
+            }
+        }
+
+        template <Tcp::Utils::serializable_constraint TSerializableModel>
+        boost::asio::awaitable<TSerializableModel> read_async()
+        {
+            try
+            {
+                Tcp::header_t content_length = co_await read_header_async();
+
+                internal_read(content_length);
+                TSerializableModel model = extract<TSerializableModel>(content_length);
+
+                co_return model;
+            }
+            catch (const boost::system::system_error& ex)
+            {
+                Tcp::Utils::handle_error(ex.code());
+
+                throw;
+            }
+        }
+
+    private:
+        template <class TCallback>
+        void read_header_async(TCallback&& callback)
+        {
             boost::asio::async_read(
                 _socket,
                 _buffer.prepare(HEADER_SIZE),
                 boost::asio::transfer_exactly(HEADER_SIZE),
-                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t size)
+                [this, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t bytes_transferred)
                 {
                     try
                     {
@@ -108,25 +157,44 @@ namespace Tcp
                         {
                             Tcp::Utils::handle_error(error);
                         }
+                        else if (bytes_transferred != HEADER_SIZE)
+                        {
+                            throw std::runtime_error("Failed to read the header");
+                        }
                         else
                         {
                             Tcp::header_t content_length = 0;
                             extract(&content_length, CONTENT_SIZE);
 
-                            internal_read(content_length);
-                            TSerializableModel model = extract<TSerializableModel>(content_length);
-
-                            callback(model);
+                            callback(content_length);
                         }
                     }
                     catch (const std::exception& ex)
                     {
-                        Logger::error("Error occurred during read: " + std::string(ex.what()));
+                        Logger::error("Error occurred during header read: " + std::string(ex.what()));
                     }
                 });
         }
 
-    private:
+        boost::asio::awaitable<Tcp::header_t> read_header_async()
+        {
+            std::size_t bytes_transferred = co_await boost::asio::async_read(
+                _socket,
+                _buffer.prepare(HEADER_SIZE),
+                boost::asio::transfer_exactly(HEADER_SIZE),
+                boost::asio::use_awaitable);
+
+            if (bytes_transferred != HEADER_SIZE)
+            {
+                throw std::runtime_error("Failed to read the header");
+            }
+
+            Tcp::header_t content_length = 0;
+            extract(&content_length, CONTENT_SIZE);
+
+            co_return content_length;
+        }
+
         /**
          * @brief Performs a synchronous read operation on the TCP socket.
          *

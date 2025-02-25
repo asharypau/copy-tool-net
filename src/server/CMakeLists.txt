@@ -1,7 +1,7 @@
 add_library(
     Server STATIC
     Startup.cpp
-    Session.cpp
+    SessionManager.cpp
     Dispatcher.cpp
     controllers/FileController.cpp
 )
