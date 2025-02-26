@@ -2,6 +2,7 @@
 #define SESSION_H
 
 #include <boost/asio.hpp>
+#include <exception>
 #include <memory>
 #include <string>
 
@@ -37,18 +38,22 @@ namespace Server
         template <class TCallback>
         boost::asio::awaitable<void> run(TCallback&& callback)
         {
-            while (_socket.is_open())
+            while (true)
             {
                 try
                 {
                     RequestMetadata request_metadata = co_await _tcp_reader.read_async<RequestMetadata>();
                     co_await _dispatcher.handle(request_metadata);
                 }
-                catch (const boost::system::system_error& ex)
+                catch (const Tcp::OperationException& ex)
                 {
+                    std::stringstream ss;
+                    ss << std::this_thread::get_id();
+                    Logger::info("Thread ID in run catch: " + ss.str());
+                    Logger::info("OperationException addressof: " + std::to_string(reinterpret_cast<std::uintptr_t>(&ex)));
                     Logger::error(std::format("An error occurred during session run: {}", ex.what()));
 
-                    if (ex.code() == boost::asio::error::eof || ex.code() == boost::asio::error::connection_reset)
+                    if (ex.get_error_code() == boost::asio::error::eof || ex.get_error_code() == boost::asio::error::connection_reset)
                     {
                         break;
                     }
