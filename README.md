@@ -27,6 +27,8 @@ This project contains a client and server application for copying files over a n
     cmake ..
     ```
 
+4. Override CLIENT_STORAGE_PATH variable
+
 4. Build the project:
     ```sh
     cmake --build . --config Release
@@ -34,12 +36,14 @@ This project contains a client and server application for copying files over a n
 
 ## Running the Server
 
+1. Run
     ```sh
     CopyToolNet.exe port=8080 host=127.0.0.1 app_type=1
     ```
 
 ## Running the Client
 
+1. Run
     ```sh
     CopyToolNet.exe port=8080 host=127.0.0.1 app_type=2
     ```
