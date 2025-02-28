@@ -3,33 +3,44 @@
 
 #include <boost/asio.hpp>
 #include <exception>
-#include <memory>
-#include <string>
+#include <format>
 
 #include "../common/network/tcp/Reader.h"
 #include "../common/network/tcp/Writer.h"
 #include "Dispatcher.h"
+#include "services/StorageProvider.h"
 
 namespace Server
 {
     class Session : public std::enable_shared_from_this<Session>
     {
     public:
-        Session(std::string client_id, boost::asio::ip::tcp::socket socket)
-            : _client_id(client_id),
-              _socket(std::move(socket)),
+        Session(const size_t client_id, boost::asio::ip::tcp::socket socket)
+            : _socket(std::move(socket)),
               _tcp_reader(_socket),
               _tcp_writer(_socket),
-              _dispatcher(_client_id, _tcp_reader, _tcp_writer)
+              _storage_provider(client_id),
+              _dispatcher(_tcp_reader, _tcp_writer, _storage_provider),
+              _client_id(client_id)
         {
             Logger::info(std::format("Client {} connected", _client_id));
         }
 
         ~Session()
         {
-            Logger::info(std::format("Client {} disconnected", _client_id));
-
-            _socket.close();
+            try
+            {
+                Logger::info(std::format("Client {} disconnected", _client_id));
+                _socket.close();
+            }
+            catch (const std::exception& ex)
+            {
+                Logger::error(std::format("An error occurred during session destruction: {}", ex.what()));
+            }
+            catch (...)
+            {
+                Logger::error("An unknown error occurred during session destruction.");
+            }
         }
 
         /**
@@ -38,6 +49,8 @@ namespace Server
         template <class TCallback>
         boost::asio::awaitable<void> run(TCallback&& callback)
         {
+            _storage_provider.create();
+
             while (true)
             {
                 try
@@ -70,11 +83,12 @@ namespace Server
         }
 
     private:
-        std::string _client_id;
         boost::asio::ip::tcp::socket _socket;
         Tcp::Reader _tcp_reader;
         Tcp::Writer _tcp_writer;
+        StorageProvider _storage_provider;
         Dispatcher _dispatcher;
+        const size_t _client_id;
     };
 }
 

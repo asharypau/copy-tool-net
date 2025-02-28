@@ -2,6 +2,7 @@
 #define SERVER_STARTUP_H
 
 #include <boost/asio.hpp>
+#include <cstddef>
 
 #include "../common/network/tcp/Acceptor.h"
 #include "../infrastructure/IApplication.h"
@@ -9,9 +10,6 @@
 
 namespace Server
 {
-    static size_t CLIENT_ID = 0;
-    static constexpr std::string_view CLIENT_STORAGE_PATH = "D:/Education/CppMentoring/files/output/";
-
     class Startup : public IApplication
     {
     public:
@@ -20,11 +18,6 @@ namespace Server
         void run() override;
 
     private:
-        /**
-         * @brief Creates a client storage.
-         */
-        void create_client_storage();
-
         /**
          * @brief Accepts incoming connections.
          *
@@ -37,6 +30,7 @@ namespace Server
         boost::asio::io_context _context;
         Tcp::Acceptor _acceptor;
         SessionManager _session_manager;
+        size_t _client_id;
     };
 }
 

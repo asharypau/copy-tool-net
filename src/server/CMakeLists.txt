@@ -4,6 +4,7 @@ add_library(
     SessionManager.cpp
     Dispatcher.cpp
     controllers/FileController.cpp
+    services/StorageProvider.cpp
 )
 
 target_link_libraries(

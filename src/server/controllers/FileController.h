@@ -5,13 +5,14 @@
 #include "../common/network/tcp/Writer.h"
 #include "../common/services/FileService.h"
 #include "controllers/IController.h"
+#include "services/StorageProvider.h"
 
 namespace Server
 {
     class FileController : public IController
     {
     public:
-        FileController(const std::string& client_id, Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer);
+        FileController(Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer, const StorageProvider& storage_provider);
 
         /**
          * @brief Handles an incoming request by initializing the read operation.
@@ -64,9 +65,9 @@ namespace Server
          */
         boost::asio::awaitable<void> write_confirmation(Tcp::header_t confirmation_id);
 
-        const std::string& _client_id;
         Tcp::Reader& _tcp_reader;
         Tcp::Writer& _tcp_writer;
+        const StorageProvider& _storage_provider;
         FileService _file_service;
         Tcp::header_t _request_size;
     };

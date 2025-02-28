@@ -1,18 +1,14 @@
 #include "FileController.h"
 
-#include <format>
-#include <string>
-
 #include "../common/models/FileHeaders.h"
 #include "../common/models/FileRequest.h"
-#include "Startup.h"
 
 using namespace Server;
 
-FileController::FileController(const std::string& client_id, Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer)
-    : _client_id(client_id),
-      _tcp_reader(tcp_reader),
+FileController::FileController(Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer, const StorageProvider& storage_provider)
+    : _tcp_reader(tcp_reader),
       _tcp_writer(tcp_writer),
+      _storage_provider(storage_provider),
       _file_service(),
       _request_size(0)
 {
@@ -32,7 +28,7 @@ boost::asio::awaitable<void> FileController::read_headers()
     FileHeaders file_headers = co_await _tcp_reader.read_async<FileHeaders>();
     _request_size -= file_headers.get_content_length();
 
-    std::string path = std::format("{}/{}/{}", std::string(Server::CLIENT_STORAGE_PATH), _client_id, file_headers.name);
+    std::string path = std::format("{}{}", _storage_provider.get_path(), file_headers.name);
     _file_service.open_create(path);
 
     co_await read_file();
