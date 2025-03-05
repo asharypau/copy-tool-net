@@ -137,10 +137,6 @@ namespace Tcp
             }
             catch (const boost::system::system_error& ex)
             {
-                std::stringstream ss;
-                ss << std::this_thread::get_id();
-                Logger::info("Thread ID in read_async catch: " + ss.str());
-
                 Tcp::Utils::handle_error(ex.code());
 
                 throw Tcp::OperationException(ex.code().value(), ex.what());

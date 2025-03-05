@@ -32,6 +32,12 @@ void SessionManager::start_new(const size_t client_id, boost::asio::ip::tcp::soc
 
 void SessionManager::end_session(const size_t client_id)
 {
+    if (_sessions.empty())
+    {
+        Logger::error("Unable to terminate session, because there are no active sessions");
+        return;
+    }
+
     const std::unordered_map<size_t, std::unique_ptr<Session>>::iterator& it = _sessions.find(client_id);
     if (it != _sessions.end())
     {

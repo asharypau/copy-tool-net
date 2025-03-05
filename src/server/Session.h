@@ -12,7 +12,7 @@
 
 namespace Server
 {
-    class Session : public std::enable_shared_from_this<Session>
+    class Session
     {
     public:
         Session(const size_t client_id, boost::asio::ip::tcp::socket socket)
@@ -47,7 +47,7 @@ namespace Server
          * @brief Runs a new session.
          */
         template <class TCallback>
-        boost::asio::awaitable<void> run(TCallback&& callback)
+        boost::asio::awaitable<void> run(TCallback callback)
         {
             _storage_provider.create();
 
@@ -60,31 +60,15 @@ namespace Server
                 }
                 catch (const Tcp::OperationException& ex)
                 {
-                    std::stringstream ss;
-                    ss << std::this_thread::get_id();
-                    Logger::info("Thread ID in run catch: " + ss.str());
-                    Logger::info("OperationException addressof: " + std::to_string(reinterpret_cast<std::uintptr_t>(&ex)));
-
-                    std::exception_ptr curr_ex = std::current_exception();
-                    if (curr_ex)
-                    {
-                        try
-                        {
-                            std::rethrow_exception(curr_ex);
-                        }
-                        catch (const Tcp::OperationException& ex2)
-                        {
-                            Logger::info("OperationException from std::current_exception addressof: " + std::to_string(reinterpret_cast<std::uintptr_t>(&ex2)));
-                        }
-                    }
-
-                    // ub
                     Logger::error(std::format("An error occurred during session run: {}", ex.what()));
 
                     if (ex.get_error_code() == boost::asio::error::eof || ex.get_error_code() == boost::asio::error::connection_reset)
                     {
                         break;
                     }
+
+                    // ex data is not available without this break
+                    break;
                 }
                 catch (const std::exception& ex)
                 {
