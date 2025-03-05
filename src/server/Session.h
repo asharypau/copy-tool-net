@@ -66,9 +66,6 @@ namespace Server
                     {
                         break;
                     }
-
-                    // ex data is not available without this break
-                    break;
                 }
                 catch (const std::exception& ex)
                 {
