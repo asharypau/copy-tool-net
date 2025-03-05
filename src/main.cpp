@@ -1,14 +1,14 @@
 #include <boost/asio.hpp>
 #include <iostream>
+#include <stdexcept>
 
-#include "../common/network/tcp/OperationException.h"
 #include "infrastructure/ApplicationBuilder.h"
 #include "utils/CmdArgs.h"
 #include "utils/CmdArgsParser.h"
 
 boost::asio::awaitable<void> run2()
 {
-    throw Tcp::OperationException(1, "OperationException");
+    throw std::runtime_error("runtime_error");
 }
 
 boost::asio::awaitable<void> run1()
@@ -19,7 +19,7 @@ boost::asio::awaitable<void> run1()
         {
             co_await run2();
         }
-        catch (const Tcp::OperationException& ex)
+        catch (const std::runtime_error& ex)
         {
             std::cout << "Error: " << ex.what() << std::endl;
 
