@@ -1,6 +1,7 @@
 #ifndef CLIENT_MESSAGE_QUEUE_HANDLER_H
 #define CLIENT_MESSAGE_QUEUE_HANDLER_H
 
+#include <boost/asio.hpp>
 #include <mutex>
 #include <queue>
 #include <vector>
@@ -38,7 +39,7 @@ namespace Client
          * - Sets `_writing_in_progress` to `false` to indicate the completion of the current write operation.
          * - If there are more messages in the queue, it starts writing the next message.
          */
-        void write_handle();
+        boost::asio::awaitable<void> write();
 
         /**
          * @brief Handles the confirmation of a successfully received message by removing it from the pending queue.
@@ -51,8 +52,9 @@ namespace Client
          *
          * @param id The Id of the message to be removed from the pending messages queue.
          */
-        void read_handle(Tcp::header_t confirmation_id);
+        boost::asio::awaitable<void> read_confirmation();
 
+        boost::asio::ip::tcp::socket& _socket;
         std::queue<Message> _messages;
         std::vector<Message> _pending_messages;
         FileClient _file_client;

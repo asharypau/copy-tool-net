@@ -2,11 +2,10 @@
 #define TCP_WRITER_H
 
 #include <boost/asio.hpp>
-#include <string>
 
-#include "../../../utils/Logger.h"
 #include "Constants.h"
-#include "Utils.h"
+#include "Details.h"
+#include "OperationException.h"
 
 namespace Tcp
 {
@@ -18,48 +17,6 @@ namespace Tcp
         {
         }
 
-        /**
-         * @brief Performs an asynchronous write operation to the TCP socket.
-         *
-         * The function operates as follows:
-         * - Determines the size of the model in bytes.
-         * - Calls `internal_write_async` to send the model data along with its size.
-         *
-         * @tparam TModel The type of the model to be written.
-         * @tparam TCallback The type of the callback function to be invoked upon completion.
-         * @param model The model instance to be written to the socket.
-         * @param callback The callback function to be executed once the operation completes.
-         */
-        template <class TModel, class TCallback>
-        void write_async(TModel& model, TCallback&& callback)
-        {
-            Tcp::header_t content_length = sizeof(model);
-
-            internal_write_async(content_length, &model, std::forward<TCallback>(callback));
-        }
-
-        /**
-         * @brief Performs an asynchronous write operation to the TCP socket.
-         *
-         * The function operates as follows:
-         * - Serializes the provided model into a byte vector.
-         * - Determines the size of the serialized data.
-         * - Calls `internal_write_async` to send the serialized data along with its size.
-         *
-         * @tparam TSerializableModel The type of the model to be extracted from the received data, constrained to be serializable.
-         * @tparam TCallback The type of the callback function to be invoked upon completion.
-         * @param model The serializable model instance to be written to the socket.
-         * @param callback The callback function to be executed once the operation completes.
-         */
-        template <Tcp::Utils::serializable_constraint TSerializableModel, class TCallback>
-        void write_async(TSerializableModel& model, TCallback&& callback)
-        {
-            std::vector<std::byte> content = model.serialize();
-            Tcp::header_t content_length = content.size();
-
-            internal_write_async(content_length, content.data(), std::forward<TCallback>(callback));
-        }
-
         template <class TModel>
         boost::asio::awaitable<void> write_async(TModel& model)
         {
@@ -68,7 +25,7 @@ namespace Tcp
             co_await internal_write_async(content_length, &model);
         }
 
-        template <Tcp::Utils::serializable_constraint TSerializableModel>
+        template <Tcp::Details::serializable_constraint TSerializableModel>
         boost::asio::awaitable<void> write_async(TSerializableModel& model)
         {
             std::vector<std::byte> content = model.serialize();
@@ -104,61 +61,15 @@ namespace Tcp
             return std::make_shared<std::vector<std::byte>>(std::move(buffer));
         }
 
-        /**
-         * @brief Performs an asynchronous write operation to the TCP socket.
-         *
-         * The function operates as follows:
-         * - Constructs a buffer containing the content length header and the raw content.
-         * - Initiates an asynchronous write operation using `boost::asio::async_write`.
-         * - If the write operation succeeds, the provided callback function is invoked.
-         * - If an error occurs during the write operation, it is handled appropriately.
-         *
-         * @tparam TContent The type of the content to be written.
-         * @tparam TCallback The type of the callback function to be invoked upon completion.
-         * @param content_length The size of the content in bytes.
-         * @param raw_content A pointer to the raw content to be written.
-         * @param callback The callback function to be executed once the operation completes.
-         */
-        template <class TContent, class TCallback>
-        void internal_write_async(Tcp::header_t content_length, const TContent* raw_content, TCallback&& callback)
-        {
-            std::shared_ptr<std::vector<std::byte>> buffer = get_buffer(content_length, raw_content);
-            boost::asio::async_write(
-                _socket,
-                boost::asio::buffer(*buffer),
-                [this, buffer, callback = std::forward<TCallback>(callback)](const boost::system::error_code& error, size_t)
-                {
-                    try
-                    {
-                        if (error)
-                        {
-                            Tcp::Utils::handle_error(error);
-                        }
-                        else
-                        {
-                            callback();
-                        }
-                    }
-                    catch (const std::exception& ex)
-                    {
-                        Logger::error("Error occurred during write: " + std::string(ex.what()));
-                    }
-                });
-        }
-
         template <class TContent>
         boost::asio::awaitable<void> internal_write_async(Tcp::header_t content_length, const TContent* raw_content)
         {
-            try
-            {
-                std::shared_ptr<std::vector<std::byte>> buffer = get_buffer(content_length, raw_content);
-                co_await boost::asio::async_write(_socket, boost::asio::buffer(*buffer), boost::asio::use_awaitable);
-            }
-            catch (const std::exception& ex)
-            {
-                Logger::error("Error occurred during write");
+            std::shared_ptr<std::vector<std::byte>> buffer = get_buffer(content_length, raw_content);
+            auto [error, _] = co_await boost::asio::async_write(_socket, boost::asio::buffer(*buffer), boost::asio::as_tuple(boost::asio::use_awaitable));
 
-                throw;
+            if (error)
+            {
+                throw Tcp::OperationException(error);
             }
         }
     };

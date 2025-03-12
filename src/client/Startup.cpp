@@ -1,5 +1,6 @@
 #include "Startup.h"
 
+#include <format>
 #include <thread>
 
 #include "../common/network/tcp/Connector.h"
@@ -20,7 +21,18 @@ Startup::Startup(unsigned short port, std::string host)
 
 Startup::~Startup()
 {
-    _socket.close();
+    try
+    {
+        _socket.close();
+    }
+    catch (const std::exception& ex)
+    {
+        Logger::error(std::format("An error occurred during client destruction: {}", ex.what()));
+    }
+    catch (...)
+    {
+        Logger::error("An unknown error occurred during client destruction");
+    }
 }
 
 void Startup::run()
@@ -29,22 +41,7 @@ void Startup::run()
     {
         Logger::info("Client started");
 
-        Tcp::Connector::connect(
-            _port,
-            _host,
-            _socket,
-            [this](const boost::system::error_code& error)
-            {
-                if (error)
-                {
-                    _stop = true;
-                }
-                else
-                {
-                    run_user_thread();
-                }
-            });
-
+        boost::asio::co_spawn(_context, connect(), boost::asio::detached);
         while (!_stop)
         {
             _context.run();
@@ -55,6 +52,20 @@ void Startup::run()
     catch (const std::exception& ex)
     {
         Logger::error(ex.what());
+    }
+}
+
+boost::asio::awaitable<void> Startup::connect()
+{
+    Tcp::OperationResult<bool> op_result = co_await Tcp::Connector::connect(_port, _host, _socket);
+    if (op_result)
+    {
+        run_user_thread();
+    }
+    else
+    {
+        _stop = true;
+        Logger::error(std::format("Error occurred during connect {}: {}", op_result.error_code(), op_result.error_message()));
     }
 }
 

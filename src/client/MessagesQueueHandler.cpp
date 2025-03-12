@@ -1,35 +1,26 @@
 #include "MessagesQueueHandler.h"
 
 #include <algorithm>
-#include <string>
+#include <optional>
 #include <vector>
+
+#include "../utils/Logger.h"
 
 using namespace Client;
 
 MessagesQueueHandler::MessagesQueueHandler(boost::asio::ip::tcp::socket& socket)
-    : _messages(),
+    : _socket(socket),
+      _messages(),
       _pending_messages(),
       _file_client(socket),
       _writing_in_progress(false),
       _reading_in_progress(false)
 {
-    _file_client.register_write_handler(
-        [this]
-        {
-            write_handle();
-        });
-
-    _file_client.register_read_handler(
-        [this](Tcp::header_t confirmation_id)
-        {
-            read_handle(confirmation_id);
-        });
 }
 
 void MessagesQueueHandler::handle(std::vector<Message>& messages)
 {
     std::unique_lock<std::mutex> lock(_mtx);
-
     for (const Message& message : messages)
     {
         _messages.push(std::move(message));
@@ -38,58 +29,99 @@ void MessagesQueueHandler::handle(std::vector<Message>& messages)
     if (!_writing_in_progress)
     {
         _writing_in_progress = true;
-        _file_client.write(_messages.front());
-    }
-
-    if (!_reading_in_progress)
-    {
-        _reading_in_progress = true;
-        _file_client.read();
+        boost::asio::co_spawn(_socket.get_executor(), write(), boost::asio::detached);
     }
 }
 
-void MessagesQueueHandler::write_handle()
+boost::asio::awaitable<void> MessagesQueueHandler::write()
 {
-    std::unique_lock<std::mutex> lock(_mtx);
+    bool stop = false;
+    std::optional<Message> message;
 
-    Message& message = _messages.front();
-    Logger::info("The message " + message.name + ':' + message.path + " has been sent.");
-
-    _pending_messages.push_back(std::move(_messages.front()));
-    _messages.pop();
-    _writing_in_progress = false;
-
-    if (!_messages.empty())
+    while (!stop)
     {
-        _writing_in_progress = true;
-        _file_client.write(_messages.front());
-    }
-}
-
-void MessagesQueueHandler::read_handle(Tcp::header_t confirmation_id)
-{
-    std::unique_lock<std::mutex> lock(_mtx);
-
-    if (_pending_messages.empty())
-    {
-        Logger::warning("Attempt to remove message by id:" + std::to_string(confirmation_id) + " from empty queue.");
-        return;
-    }
-
-    std::vector<Message>::iterator current = std::find_if(
-        _pending_messages.begin(),
-        _pending_messages.end(),
-        [confirmation_id](const Message& current)
+        try
         {
-            return current.id == confirmation_id;
-        });
+            {
+                std::unique_lock<std::mutex> lock(_mtx);
+                message = _messages.front();
+            }
 
-    if (current != _pending_messages.end())
-    {
-        Logger::info("Confirmation of successful message " + current->name + ':' + current->path + " sending received.");
+            co_await _file_client.write(*message);
+            Logger::info("The message " + message->name + ':' + message->path + " has been sent.");
 
-        _pending_messages.erase(current);
+            {
+                std::unique_lock<std::mutex> lock(_mtx);
+
+                _pending_messages.push_back(std::move(*message));
+                _messages.pop();
+
+                stop = _messages.empty();
+
+                if (!_reading_in_progress)
+                {
+                    _reading_in_progress = true;
+                    boost::asio::co_spawn(_socket.get_executor(), read_confirmation(), boost::asio::detached);
+                }
+            }
+        }
+        catch (const Tcp::OperationException& ex)
+        {
+            Logger::error(std::format("An error occurred during writing the message {}: {}", ex.error_code(), ex.what()));
+
+            if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)
+            {
+                break;
+            }
+        }
+        catch (const std::exception& ex)
+        {
+            Logger::error(std::format("An error occurred during writing the message: {}", ex.what()));
+
+            break;
+        }
+        catch (...)
+        {
+            Logger::error("An unknown error occurred during writing the message");
+
+            break;
+        }
     }
 
-    _file_client.read();
+    std::unique_lock<std::mutex> lock(_mtx);
+    _writing_in_progress = false;
+}
+
+boost::asio::awaitable<void> MessagesQueueHandler::read_confirmation()
+{
+    bool stop = false;
+
+    while (!stop)
+    {
+        Tcp::header_t confirmation_id = co_await _file_client.read_confirmation();
+
+        {
+            std::unique_lock<std::mutex> lock(_mtx);
+
+            std::vector<Message>::iterator it = std::find_if(
+                _pending_messages.begin(),
+                _pending_messages.end(),
+                [confirmation_id](const Message& current)
+                {
+                    return current.id == confirmation_id;
+                });
+
+            if (it != _pending_messages.end())
+            {
+                Logger::info("Confirmation of successful message " + it->name + ':' + it->path + " sending received.");
+
+                _pending_messages.erase(it);
+            }
+
+            stop = _pending_messages.empty();
+        }
+    }
+
+    std::unique_lock<std::mutex> lock(_mtx);
+    _reading_in_progress = false;
 }

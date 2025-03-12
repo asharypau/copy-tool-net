@@ -7,6 +7,7 @@
 #include "../infrastructure/IApplication.h"
 #include "MessagesPrompt.h"
 #include "MessagesQueueHandler.h"
+#include "boost/asio/awaitable.hpp"
 
 namespace Client
 {
@@ -19,6 +20,7 @@ namespace Client
         void run() override;
 
     private:
+        boost::asio::awaitable<void> connect();
         /**
          * @brief Starts a new thread to handle user messages asynchronously.
          */

@@ -39,7 +39,7 @@ private:
     template <class TResult, std::size_t Size>
     TResult get(const std::string_view arg, const std::array<std::string, Size> tokens) const
     {
-        TResult output;
+        TResult output{};
 
         for (size_t i = 0; i < tokens.size(); i++)
         {

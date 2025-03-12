@@ -1,6 +1,7 @@
 #ifndef FILE_CONTROLLER_H
 #define FILE_CONTROLLER_H
 
+#include "../common/models/FileHeaders.h"
 #include "../common/network/tcp/Reader.h"
 #include "../common/network/tcp/Writer.h"
 #include "../common/services/FileService.h"
@@ -38,7 +39,7 @@ namespace Server
          *   - Calling `open_create` to prepare the file for writing based on the received header information.
          *   - Initiates the reading of the file data via `read_file`.
          */
-        boost::asio::awaitable<void> read_headers();
+        boost::asio::awaitable<FileHeaders> read_headers();
 
         /**
          * @brief Initiates an asynchronous read operation for file data and processes it in batches.
@@ -53,7 +54,7 @@ namespace Server
          *
          * @param confirmation_id The ID used for confirming the file transfer.
          */
-        boost::asio::awaitable<void> read_file();
+        boost::asio::awaitable<void> read_file(FileHeaders& headers);
 
         /**
          * @brief Initiates an asynchronous write operation to confirm file transfer completion.

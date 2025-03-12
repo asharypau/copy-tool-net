@@ -7,6 +7,7 @@
 
 #include "../common/network/tcp/Reader.h"
 #include "../common/network/tcp/Writer.h"
+#include "../utils/Logger.h"
 #include "Dispatcher.h"
 #include "services/StorageProvider.h"
 
@@ -35,11 +36,11 @@ namespace Server
             }
             catch (const std::exception& ex)
             {
-                Logger::error(std::format("An error occurred during session destruction: {}", ex.what()));
+                Logger::error(std::format("An error occurred during session destruction: {} for client {}", ex.what(), _client_id));
             }
             catch (...)
             {
-                Logger::error("An unknown error occurred during session destruction.");
+                Logger::error(std::format("An unknown error occurred during session destruction for client {}", _client_id));
             }
         }
 
@@ -56,20 +57,33 @@ namespace Server
                 try
                 {
                     RequestMetadata request_metadata = co_await _tcp_reader.read_async<RequestMetadata>();
-                    co_await _dispatcher.handle(request_metadata);
+                    if (request_metadata.size != 0 && !request_metadata.endpoint.empty())
+                    {
+                        co_await _dispatcher.handle(request_metadata);
+                    }
+                    else
+                    {
+                        Logger::warning(std::format("Invalid RequestMetadata was received for client {}", _client_id));
+                    }
                 }
                 catch (const Tcp::OperationException& ex)
                 {
-                    Logger::error(std::format("An error occurred during session run: {}", ex.what()));
+                    Logger::error(std::format("An error occurred during session run: {} for client {}", ex.what(), _client_id));
 
-                    if (ex.get_error_code() == boost::asio::error::eof || ex.get_error_code() == boost::asio::error::connection_reset)
+                    if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)
                     {
                         break;
                     }
                 }
                 catch (const std::exception& ex)
                 {
-                    Logger::error(std::format("Unknown error occurred during session run: {}", ex.what()));
+                    Logger::error(std::format("An error error occurred during session run: {} for client {}", ex.what(), _client_id));
+
+                    break;
+                }
+                catch (...)
+                {
+                    Logger::error(std::format("An unknown error occurred during session run for client {}", _client_id));
 
                     break;
                 }

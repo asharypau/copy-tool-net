@@ -1,6 +1,7 @@
 #include "Dispatcher.h"
 
 #include "../common/network/Endpoints.h"
+#include "../utils/Logger.h"
 #include "controllers/FileController.h"
 
 using namespace Server;

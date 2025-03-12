@@ -10,13 +10,11 @@ using namespace Client;
 FileClient::FileClient(boost::asio::ip::tcp::socket& socket)
     : _tcp_writer(socket),
       _tcp_reader(socket),
-      _file_service(),
-      _write_handle(),
-      _read_handle()
+      _file_service()
 {
 }
 
-void FileClient::write(Message message)
+boost::asio::awaitable<void> FileClient::write(Message& message)
 {
     size_t batches_count = (message.size + BATCH_SIZE - 1) / BATCH_SIZE;
 
@@ -24,63 +22,41 @@ void FileClient::write(Message message)
     request_metadata.endpoint = Endpoints::FILE;
     request_metadata.size = (Tcp::HEADER_SIZE * 2 + message.name.size()) + (batches_count * Tcp::HEADER_SIZE + message.size);
 
-    _tcp_writer.write_async(
-        request_metadata,
-        [this, message]
-        {
-            write_headers(message);
-        });
+    co_await _tcp_writer.write_async(request_metadata);
+    co_await write_headers(message);
+    co_await write_file(message);
 }
 
-void FileClient::read()
+boost::asio::awaitable<Tcp::header_t> FileClient::read_confirmation()
 {
-    _tcp_reader.read_async<Tcp::header_t>(
-        [this](Tcp::header_t confirmation_id)
-        {
-            if (_read_handle.has_value())
-            {
-                _read_handle.value()(confirmation_id);
-            }
-        });
+    co_return co_await _tcp_reader.read_async<Tcp::header_t>();
 }
 
-void FileClient::write_headers(Message message)
+boost::asio::awaitable<void> FileClient::write_headers(Message& message)
 {
     FileHeaders headers;
     headers.confirmation_id = message.id;
     headers.name = message.name;
 
-    _tcp_writer.write_async(
-        headers,
-        [this, message]
-        {
-            _file_service.open_read(message.path);
-            write_file();
-        });
+    co_await _tcp_writer.write_async(headers);
 }
 
-void FileClient::write_file()
+boost::asio::awaitable<void> FileClient::write_file(Message& message)
 {
-    FileRequest request;
-    request.batch.resize(BATCH_SIZE);
-    request.batch_size = _file_service.read(request.batch.data(), BATCH_SIZE);
+    _file_service.open_read(message.path);
 
-    if (request.batch_size > 0)
+    while (true)
     {
-        _tcp_writer.write_async(
-            request,
-            [this]()
-            {
-                write_file();
-            });
-    }
-    else
-    {
-        _file_service.close();
-
-        if (_write_handle.has_value())
+        FileRequest request;
+        request.batch.resize(BATCH_SIZE);
+        request.batch_size = _file_service.read(request.batch.data(), BATCH_SIZE);
+        if (request.batch_size == 0)
         {
-            _write_handle.value()();
+            break;
         }
+
+        co_await _tcp_writer.write_async(request);
     }
+
+    _file_service.close();
 }

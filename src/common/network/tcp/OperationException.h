@@ -2,32 +2,33 @@
 #define OPERATION_EXCEPTION_H
 
 #include <boost/asio.hpp>
+#include <stdexcept>
 #include <string>
 
 namespace Tcp
 {
-    class OperationException : public std::exception
+    class OperationException : public std::runtime_error
     {
     public:
-        OperationException(int error_code, const std::string message)
-            : _error_code(error_code),
-              _message(std::move(message))
+        explicit OperationException(boost::system::error_code& err)
+            : std::runtime_error(err.message()),
+              _error_code(err.value())
         {
         }
 
-        int get_error_code() const noexcept
+        OperationException(int error_code, const std::string message)
+            : std::runtime_error(std::move(message)),
+              _error_code(error_code)
+        {
+        }
+
+        int error_code() const noexcept
         {
             return _error_code;
         }
 
-        const char* what() const noexcept override
-        {
-            return _message.c_str();
-        }
-
     private:
         int _error_code;
-        std::string _message;
     };
 }
 

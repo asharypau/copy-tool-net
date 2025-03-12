@@ -2,6 +2,8 @@
 
 #include <format>
 
+#include "../utils/Logger.h"
+
 using namespace Server;
 
 SessionManager::SessionManager(boost::asio::io_context& context)

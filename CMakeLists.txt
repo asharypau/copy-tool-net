@@ -1,8 +1,29 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.30)
 project(CopyToolIpcSln LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Add sanitizers for debug builds
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
+    add_compile_options(
+        -g
+        -O0
+        -fno-omit-frame-pointer
+        -fno-inline
+        -fvisibility=hidden
+        -fsanitize=address
+        -fsanitize=undefined
+    )
+
+    add_link_options(
+        -fsanitize=address
+        -fsanitize=undefined
+    )
+endif()
 
 # Download and configure boost
 include(FetchContent)

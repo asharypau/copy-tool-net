@@ -1,5 +1,6 @@
 #include "Startup.h"
 
+#include <format>
 #include <string>
 
 #include "../utils/Logger.h"
@@ -35,9 +36,20 @@ boost::asio::awaitable<void> Startup::accept()
 {
     while (true)
     {
-        auto socket = co_await _acceptor.accept();
+        auto op_result = co_await _acceptor.accept();
+        if (op_result)
+        {
+            ++_client_id;
+            _session_manager.start_new(_client_id, std::move(op_result.acquire_result()));
 
-        ++_client_id;
-        _session_manager.start_new(_client_id, std::move(socket));
+            if (op_result)
+            {
+                Logger::info("true");
+            }
+        }
+        else
+        {
+            Logger::info(std::format("The client is not accepted, {}: {}", op_result.error_code(), op_result.error_message()));
+        }
     }
 }
