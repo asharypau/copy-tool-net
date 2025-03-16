@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace Tcp
 {
@@ -11,7 +12,7 @@ namespace Tcp
     {
     public:
         explicit OperationException(boost::system::error_code& err)
-            : std::runtime_error(err.message()),
+            : std::runtime_error(std::move(err.message())),
               _error_code(err.value())
         {
         }

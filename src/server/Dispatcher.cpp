@@ -22,5 +22,6 @@ boost::asio::awaitable<void> Dispatcher::handle(RequestMetadata& request_metadat
     else
     {
         Logger::error("Invalid endpoint: " + request_metadata.endpoint);
+        co_return;
     }
 }

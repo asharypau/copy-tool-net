@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <cstddef>
+#include <memory>
 #include <string>
 
 #include "Constants.h"
@@ -33,28 +34,13 @@ namespace Tcp
         template <class TModel>
         boost::asio::awaitable<TModel> read_async()
         {
-            Tcp::header_t content_length = co_await read_content_length_async();
+            Tcp::header_t content_length = co_await read_header_async();
 
-            internal_read_data(content_length);
-            TModel model;
-            extract(&model, sizeof(TModel));
-
-            co_return model;
-        }
-
-        template <Tcp::Details::serializable_constraint TSerializableModel>
-        boost::asio::awaitable<TSerializableModel> read_async()
-        {
-            Tcp::header_t content_length = co_await read_content_length_async();
-
-            internal_read_data(content_length);
-            TSerializableModel model = extract<TSerializableModel>(content_length);
-
-            co_return model;
+            co_return read_data<TModel>(content_length);
         }
 
     private:
-        boost::asio::awaitable<Tcp::header_t> read_content_length_async()
+        boost::asio::awaitable<Tcp::header_t> read_header_async()
         {
             auto [error, _] = co_await boost::asio::async_read(
                 _socket,
@@ -68,10 +54,8 @@ namespace Tcp
             }
 
             _buffer.commit(HEADER_SIZE);
-            Tcp::header_t content_length = 0;
-            extract(&content_length, CONTENT_SIZE);
 
-            co_return content_length;
+            co_return extract_model<Tcp::header_t>(CONTENT_SIZE);
         }
 
         /**
@@ -84,7 +68,8 @@ namespace Tcp
          *
          * @param content_length The exact number of bytes to read from the socket.
          */
-        void internal_read_data(size_t content_length)
+        template <class TModel>
+        TModel read_data(size_t content_length)
         {
             boost::system::error_code error;
             boost::asio::read(_socket, _buffer.prepare(content_length), boost::asio::transfer_exactly(content_length), error);
@@ -93,9 +78,16 @@ namespace Tcp
             {
                 throw Tcp::OperationException(error);
             }
+
+            _buffer.commit(content_length);
+
+            if constexpr (std::is_base_of_v<ISerializable, TModel>)
+            {
+                return extract_serializable_model<TModel>(content_length);
+            }
             else
             {
-                _buffer.commit(content_length);
+                return extract_model<TModel>(content_length);
             }
         }
 
@@ -106,18 +98,20 @@ namespace Tcp
          * - Uses `static_cast` to obtain a raw pointer to the buffer data.
          * - Consumes (removes) the extracted bytes from `_buffer`.
          *
-         * @tparam TData The type of data being extracted.
-         * @param data A pointer to the destination memory where the extracted bytes will be stored.
-         * @param size_in_bytes The number of bytes to extract from `_buffer`.
-         * @throws std::runtime_error If the buffer does not contain enough data.
+         * @tparam TModel The type of the model to extract.
+         * @param content_length The number of bytes to extract from `_buffer`.
+         * @return The extracted `TModel` instance.
          */
-        template <class TData>
-        void extract(TData* data, size_t size_in_bytes)
+        template <class TModel>
+        TModel extract_model(size_t content_length)
         {
             std::byte* begin = static_cast<std::byte*>(_buffer.data().data());
-            std::memcpy(data, begin, size_in_bytes);
+            TModel model;
+            std::memcpy(std::addressof(model), begin, content_length);
 
-            _buffer.consume(size_in_bytes);
+            _buffer.consume(content_length);
+
+            return model;
         }
 
         /**
@@ -135,7 +129,7 @@ namespace Tcp
          * @throws std::runtime_error If the buffer does not contain enough data or deserialization fails.
          */
         template <Tcp::Details::serializable_constraint TSerializableModel>
-        TSerializableModel extract(Tcp::header_t content_length)
+        TSerializableModel extract_serializable_model(Tcp::header_t content_length)
         {
             TSerializableModel model(content_length);
             Tcp::header_t consumed_bytes = model.deserialize(_buffer);
