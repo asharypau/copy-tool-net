@@ -12,7 +12,7 @@ public:
     void open_create(const std::string& path);
     void open_read(const std::string& path);
     void close();
-    void write(char* data, size_t size);
+    void write(const char* data, size_t size);
     size_t read(char* date, size_t size);
 
 private:

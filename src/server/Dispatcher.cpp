@@ -6,10 +6,10 @@
 
 using namespace Server;
 
-Dispatcher::Dispatcher(Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer, const StorageProvider& storage_provider)
+Dispatcher::Dispatcher(Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer, FileStorage& file_storage)
     : _controllers()
 {
-    _controllers.emplace(std::string(Endpoints::FILE), std::make_unique<FileController>(tcp_reader, tcp_writer, storage_provider));
+    _controllers.emplace(std::string(Endpoints::FILE), std::make_unique<FileController>(tcp_reader, tcp_writer, file_storage));
 }
 
 boost::asio::awaitable<void> Dispatcher::handle(RequestMetadata& request_metadata)

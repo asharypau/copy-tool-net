@@ -30,10 +30,13 @@ void FileService::open_read(const std::string& path)
 
 void FileService::close()
 {
-    _file.close();
+    if (_file.is_open())
+    {
+        _file.close();
+    }
 }
 
-void FileService::write(char* data, size_t size)
+void FileService::write(const char* data, size_t size)
 {
     _file.write(data, size);
 }

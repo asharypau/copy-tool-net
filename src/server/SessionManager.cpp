@@ -25,10 +25,12 @@ void SessionManager::start_new(const size_t client_id, boost::asio::ip::tcp::soc
                     end_session(id);
                 }),
             boost::asio::detached);
+
+        Logger::info(std::format("Session started for the client {}", client_id));
     }
     else
     {
-        Logger::error(std::format("Client {} already exists", client_id));
+        Logger::error(std::format("Session has already started for the client {}", client_id));
     }
 }
 
@@ -49,4 +51,6 @@ void SessionManager::end_session(const size_t client_id)
     {
         Logger::error(std::format("Unable to terminate session, because invalid client id was provided: {}", client_id));
     }
+
+    Logger::info(std::format("Session ended for the client {}", client_id));
 }

@@ -9,7 +9,7 @@
 #include "../common/network/tcp/Writer.h"
 #include "../utils/Logger.h"
 #include "Dispatcher.h"
-#include "services/StorageProvider.h"
+#include "services/FileStorage.h"
 
 namespace Server
 {
@@ -20,27 +20,25 @@ namespace Server
             : _socket(std::move(socket)),
               _tcp_reader(_socket),
               _tcp_writer(_socket),
-              _storage_provider(client_id),
-              _dispatcher(_tcp_reader, _tcp_writer, _storage_provider),
+              _file_storage(std::to_string(client_id)),
+              _dispatcher(_tcp_reader, _tcp_writer, _file_storage),
               _client_id(client_id)
         {
-            Logger::info(std::format("Client {} connected", _client_id));
         }
 
         ~Session()
         {
             try
             {
-                Logger::info(std::format("Client {} disconnected", _client_id));
                 _socket.close();
             }
             catch (const std::exception& ex)
             {
-                Logger::error(std::format("An error occurred during session destruction: {} for client {}", ex.what(), _client_id));
+                Logger::error(std::format("An error occurred during session destruction: {} for the client {}", ex.what(), _client_id));
             }
             catch (...)
             {
-                Logger::error(std::format("An unknown error occurred during session destruction for client {}", _client_id));
+                Logger::error(std::format("An unknown error occurred during session destruction for the client {}", _client_id));
             }
         }
 
@@ -50,8 +48,6 @@ namespace Server
         template <class TCallback>
         boost::asio::awaitable<void> run(TCallback callback)
         {
-            _storage_provider.create();
-
             while (true)
             {
                 try
@@ -63,14 +59,14 @@ namespace Server
                     }
                     else
                     {
-                        Logger::warning(std::format("Invalid RequestMetadata was received for client {}", _client_id));
+                        Logger::warning(std::format("Invalid RequestMetadata was received for the client {}", _client_id));
                     }
                 }
                 catch (const Tcp::OperationException& ex)
                 {
                     // int error_code = ex.error_code();
                     // std::string error_message = ex.what();
-                    Logger::error(std::format("An error occurred during session run: {} for client {}", ex.what(), _client_id));
+                    Logger::error(std::format("An error occurred during session run: {} for the client {}", ex.what(), _client_id));
 
                     if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)
                     {
@@ -79,13 +75,13 @@ namespace Server
                 }
                 catch (const std::exception& ex)
                 {
-                    Logger::error(std::format("An error error occurred during session run: {} for client {}", ex.what(), _client_id));
+                    Logger::error(std::format("An error error occurred during session run: {} for the client {}", ex.what(), _client_id));
 
                     break;
                 }
                 catch (...)
                 {
-                    Logger::error(std::format("An unknown error occurred during session run for client {}", _client_id));
+                    Logger::error(std::format("An unknown error occurred during session run for the client {}", _client_id));
 
                     break;
                 }
@@ -98,7 +94,7 @@ namespace Server
         boost::asio::ip::tcp::socket _socket;
         Tcp::Reader _tcp_reader;
         Tcp::Writer _tcp_writer;
-        StorageProvider _storage_provider;
+        FileStorage _file_storage;
         Dispatcher _dispatcher;
         const size_t _client_id;
     };

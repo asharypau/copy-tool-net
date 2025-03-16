@@ -9,14 +9,14 @@
 #include "../common/network/tcp/Reader.h"
 #include "../common/network/tcp/Writer.h"
 #include "controllers/IController.h"
-#include "services/StorageProvider.h"
+#include "services/FileStorage.h"
 
 namespace Server
 {
     class Dispatcher
     {
     public:
-        Dispatcher(Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer, const StorageProvider& storage_provider);
+        Dispatcher(Tcp::Reader& tcp_reader, Tcp::Writer& tcp_writer, FileStorage& file_storage);
 
         /**
          * @brief Handles an incoming request by dispatching it to the appropriate controller.

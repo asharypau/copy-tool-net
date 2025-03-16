@@ -31,7 +31,7 @@ namespace Tcp
             }
         }
 
-        explicit OperationResult(TResult res, boost::system::error_code& err)
+        OperationResult(TResult res, boost::system::error_code& err)
             : _result(std::move(res)),
               _error_code(err.value()),
               _error_message(err.message())
@@ -42,14 +42,14 @@ namespace Tcp
             }
         }
 
-        explicit OperationResult(TResult res, int err_code, std::string err_msg)
+        OperationResult(TResult res, int err_code, std::string err_msg)
             : _result(std::move(res)),
               _error_code(err_code),
               _error_message(err_msg)
         {
         }
 
-        explicit OperationResult(int err_code, std::string err_msg)
+        OperationResult(int err_code, std::string err_msg)
             : _result(),
               _error_code(err_code),
               _error_message(err_msg)
