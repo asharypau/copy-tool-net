@@ -9,13 +9,6 @@
 class FileHeaders : public Tcp::ISerializable
 {
 public:
-    FileHeaders() = default;
-
-    FileHeaders(Tcp::header_t content_length)
-        : ISerializable(content_length)
-    {
-    }
-
     std::vector<std::byte> serialize() override
     {
         size_t offset = 0;

@@ -52,7 +52,7 @@ namespace Server
             {
                 try
                 {
-                    RequestMetadata request_metadata = co_await _tcp_reader.read_async<RequestMetadata>();
+                    auto [request_metadata, _] = co_await _tcp_reader.read_async<RequestMetadata>();
                     if (request_metadata.size != 0 && !request_metadata.endpoint.empty())
                     {
                         co_await _dispatcher.handle(request_metadata);

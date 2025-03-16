@@ -23,8 +23,8 @@ boost::asio::awaitable<void> FileController::handle(Tcp::header_t request_size)
 
 boost::asio::awaitable<FileHeaders> FileController::read_headers()
 {
-    FileHeaders file_headers = co_await _tcp_reader.read_async<FileHeaders>();
-    _request_size -= file_headers.get_content_length();
+    auto [file_headers, content_length] = co_await _tcp_reader.read_async<FileHeaders>();
+    _request_size -= content_length;
 
     co_return file_headers;
 }
@@ -35,8 +35,8 @@ boost::asio::awaitable<void> FileController::read_file(FileHeaders& headers)
 
     while (true)
     {
-        FileRequest file_request = co_await _tcp_reader.read_async<FileRequest>();
-        _request_size -= file_request.get_content_length();
+        auto [file_request, content_length] = co_await _tcp_reader.read_async<FileRequest>();
+        _request_size -= content_length;
         _file_storage.write(file_request.batch.data(), file_request.batch_size);
 
         if (_request_size == 0)

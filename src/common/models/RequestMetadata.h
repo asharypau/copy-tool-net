@@ -10,13 +10,6 @@
 class RequestMetadata : public Tcp::ISerializable
 {
 public:
-    RequestMetadata() = default;
-
-    RequestMetadata(Tcp::header_t content_length)
-        : ISerializable(content_length)
-    {
-    }
-
     std::vector<std::byte> serialize() override
     {
         size_t offset = 0;

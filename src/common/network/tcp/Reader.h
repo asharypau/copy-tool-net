@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <tuple>
 
 #include "Constants.h"
 #include "Details.h"
@@ -32,11 +33,11 @@ namespace Tcp
         Reader& operator=(Reader&&) = delete;
 
         template <class TModel>
-        boost::asio::awaitable<TModel> read_async()
+        boost::asio::awaitable<std::tuple<TModel, size_t>> read_async()
         {
             Tcp::header_t content_length = co_await read_header_async();
 
-            co_return read_data<TModel>(content_length);
+            co_return std::make_tuple(read_data<TModel>(content_length), content_length);
         }
 
     private:
@@ -131,7 +132,7 @@ namespace Tcp
         template <Tcp::Details::serializable_constraint TSerializableModel>
         TSerializableModel extract_serializable_model(Tcp::header_t content_length)
         {
-            TSerializableModel model(content_length);
+            TSerializableModel model;
             Tcp::header_t consumed_bytes = model.deserialize(_buffer);
             if (consumed_bytes != content_length)
             {

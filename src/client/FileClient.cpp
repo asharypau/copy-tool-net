@@ -29,7 +29,9 @@ boost::asio::awaitable<void> FileClient::write(Message& message)
 
 boost::asio::awaitable<Tcp::header_t> FileClient::read_confirmation()
 {
-    co_return co_await _tcp_reader.read_async<Tcp::header_t>();
+    auto [confirmation_id, _] = co_await _tcp_reader.read_async<Tcp::header_t>();
+
+    co_return confirmation_id;
 }
 
 boost::asio::awaitable<void> FileClient::write_headers(Message& message)

@@ -8,13 +8,6 @@
 class FileRequest : public Tcp::ISerializable
 {
 public:
-    FileRequest() = default;
-
-    FileRequest(Tcp::header_t content_length)
-        : ISerializable(content_length)
-    {
-    }
-
     std::vector<std::byte> serialize() override
     {
         size_t offset = 0;
