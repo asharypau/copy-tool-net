@@ -36,12 +36,12 @@ void MessagesQueueHandler::handle(std::vector<Message>& messages)
 boost::asio::awaitable<void> MessagesQueueHandler::write()
 {
     bool stop = false;
-    std::optional<Message> message;
 
     while (!stop)
     {
         try
         {
+            std::optional<Message> message;
             {
                 std::unique_lock<std::mutex> lock(_mtx);
                 message = _messages.front();
@@ -71,20 +71,13 @@ boost::asio::awaitable<void> MessagesQueueHandler::write()
 
             if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)
             {
-                break;
+                stop = true;
             }
         }
         catch (const std::exception& ex)
         {
             Logger::error(std::format("An error occurred during writing the message: {}", ex.what()));
-
-            break;
-        }
-        catch (...)
-        {
-            Logger::error("An unknown error occurred during writing the message");
-
-            break;
+            stop = true;
         }
     }
 
@@ -98,27 +91,44 @@ boost::asio::awaitable<void> MessagesQueueHandler::read_confirmation()
 
     while (!stop)
     {
-        Tcp::header_t confirmation_id = co_await _file_client.read_confirmation();
-
+        try
         {
-            std::unique_lock<std::mutex> lock(_mtx);
+            Tcp::header_t confirmation_id = co_await _file_client.read_confirmation();
 
-            std::vector<Message>::iterator it = std::find_if(
-                _pending_messages.begin(),
-                _pending_messages.end(),
-                [confirmation_id](const Message& current)
-                {
-                    return current.id == confirmation_id;
-                });
-
-            if (it != _pending_messages.end())
             {
-                Logger::info("Confirmation of successful message " + it->name + ':' + it->path + " sending received.");
+                std::unique_lock<std::mutex> lock(_mtx);
 
-                _pending_messages.erase(it);
+                std::vector<Message>::iterator it = std::find_if(
+                    _pending_messages.begin(),
+                    _pending_messages.end(),
+                    [confirmation_id](const Message& current)
+                    {
+                        return current.id == confirmation_id;
+                    });
+
+                if (it != _pending_messages.end())
+                {
+                    Logger::info("Confirmation of successful message " + it->name + ':' + it->path + " sending received.");
+
+                    _pending_messages.erase(it);
+                }
+
+                stop = _pending_messages.empty();
             }
+        }
+        catch (const Tcp::OperationException& ex)
+        {
+            Logger::error(std::format("An error occurred during writing the message {}: {}", ex.error_code(), ex.what()));
 
-            stop = _pending_messages.empty();
+            if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)
+            {
+                stop = true;
+            }
+        }
+        catch (const std::exception& ex)
+        {
+            Logger::error(std::format("An error occurred during writing the message: {}", ex.what()));
+            stop = true;
         }
     }
 

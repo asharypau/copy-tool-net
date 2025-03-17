@@ -14,9 +14,9 @@ SessionManager::SessionManager(boost::asio::io_context& context)
 
 void SessionManager::start_new(const size_t client_id, boost::asio::ip::tcp::socket socket)
 {
-    const auto& [it, emplaced] = _sessions.try_emplace(client_id, std::make_unique<Session>(client_id, std::move(socket)));
-    if (emplaced)
+    if (!_sessions.contains(client_id))
     {
+        _sessions.emplace(client_id, std::make_unique<Session>(client_id, std::move(socket)));
         boost::asio::co_spawn(
             _context,
             _sessions[client_id]->run(
@@ -25,8 +25,6 @@ void SessionManager::start_new(const size_t client_id, boost::asio::ip::tcp::soc
                     end_session(id);
                 }),
             boost::asio::detached);
-
-        Logger::info(std::format("Session started for the client {}", client_id));
     }
     else
     {
@@ -51,6 +49,4 @@ void SessionManager::end_session(const size_t client_id)
     {
         Logger::error(std::format("Unable to terminate session, because invalid client id was provided: {}", client_id));
     }
-
-    Logger::info(std::format("Session ended for the client {}", client_id));
 }

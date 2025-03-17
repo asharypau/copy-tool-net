@@ -5,8 +5,8 @@
 #include <boost/beast.hpp>
 #include <cstddef>
 #include <memory>
-#include <string>
 #include <tuple>
+#include <utility>
 
 #include "Constants.h"
 #include "Details.h"
@@ -36,8 +36,9 @@ namespace Tcp
         boost::asio::awaitable<std::tuple<TModel, size_t>> read_async()
         {
             Tcp::header_t content_length = co_await read_header_async();
+            std::tuple<TModel, size_t> response = std::make_tuple(read_data<TModel>(content_length), content_length);
 
-            co_return std::make_tuple(read_data<TModel>(content_length), content_length);
+            co_return std::move(response);
         }
 
     private:
@@ -136,8 +137,7 @@ namespace Tcp
             Tcp::header_t consumed_bytes = model.deserialize(_buffer);
             if (consumed_bytes != content_length)
             {
-                std::string message = std::format("Attempt to consume ({}) bytes, although ({}) bytes were read", consumed_bytes, content_length);
-                throw std::runtime_error(message);
+                throw Tcp::OperationException(-1, std::format("Attempt to consume ({}) bytes, although ({}) bytes were read", consumed_bytes, content_length));
             }
 
             _buffer.consume(consumed_bytes);

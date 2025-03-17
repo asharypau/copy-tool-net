@@ -29,10 +29,6 @@ Startup::~Startup()
     {
         Logger::error(std::format("An error occurred during client destruction: {}", ex.what()));
     }
-    catch (...)
-    {
-        Logger::error("An unknown error occurred during client destruction");
-    }
 }
 
 void Startup::run()

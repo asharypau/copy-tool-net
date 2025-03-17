@@ -24,6 +24,7 @@ namespace Server
               _dispatcher(_tcp_reader, _tcp_writer, _file_storage),
               _client_id(client_id)
         {
+            Logger::info(std::format("Session started for the client {}", _client_id));
         }
 
         ~Session()
@@ -31,14 +32,11 @@ namespace Server
             try
             {
                 _socket.close();
+                Logger::info(std::format("Session ended for the client {}", _client_id));
             }
             catch (const std::exception& ex)
             {
                 Logger::error(std::format("An error occurred during session destruction: {} for the client {}", ex.what(), _client_id));
-            }
-            catch (...)
-            {
-                Logger::error(std::format("An unknown error occurred during session destruction for the client {}", _client_id));
             }
         }
 
@@ -76,12 +74,6 @@ namespace Server
                 catch (const std::exception& ex)
                 {
                     Logger::error(std::format("An error error occurred during session run: {} for the client {}", ex.what(), _client_id));
-
-                    break;
-                }
-                catch (...)
-                {
-                    Logger::error(std::format("An unknown error occurred during session run for the client {}", _client_id));
 
                     break;
                 }
