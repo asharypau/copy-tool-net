@@ -32,7 +32,7 @@ namespace Client
         MessagesPrompt _messages_prompt;
         unsigned short _port;
         std::string _host;
-        bool _stop;
+        bool _stop;  // should be atomic
     };
 }
 
