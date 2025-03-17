@@ -62,8 +62,6 @@ namespace Server
                 }
                 catch (const Tcp::OperationException& ex)
                 {
-                    // int error_code = ex.error_code();
-                    // std::string error_message = ex.what();
                     Logger::error(std::format("An error occurred during session run: {} for the client {}", ex.what(), _client_id));
 
                     if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)

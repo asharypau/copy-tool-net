@@ -45,19 +45,23 @@ boost::asio::awaitable<void> FileClient::write_headers(Message& message)
 
 boost::asio::awaitable<void> FileClient::write_file(Message& message)
 {
+    size_t remaining_bytes_to_read = message.size;
     _file_service.open_read(message.path);
 
     while (true)
     {
         FileRequest request;
-        request.batch.resize(BATCH_SIZE);
-        request.batch_size = _file_service.read(request.batch.data(), BATCH_SIZE);
-        if (request.batch_size == 0)
+        request.batch_size = remaining_bytes_to_read > BATCH_SIZE ? BATCH_SIZE : remaining_bytes_to_read;
+        request.batch.resize(request.batch_size);
+
+        _file_service.read(request.batch.data(), request.batch_size);
+        co_await _tcp_writer.write_async(request);
+
+        remaining_bytes_to_read -= request.batch_size;
+        if (remaining_bytes_to_read == 0)
         {
             break;
         }
-
-        co_await _tcp_writer.write_async(request);
     }
 
     _file_service.close();

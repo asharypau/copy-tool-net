@@ -34,16 +34,31 @@ void FileService::close()
     {
         _file.close();
     }
+
+    if (!_file)
+    {
+        throw std::runtime_error("Failed to close file");
+    }
 }
 
 void FileService::write(const char* data, size_t size)
 {
     _file.write(data, size);
+
+    if (!_file)
+    {
+        throw std::runtime_error("Failed to write file");
+    }
 }
 
 size_t FileService::read(char* data, size_t size)
 {
     _file.read(data, size);
+
+    if (!_file)
+    {
+        throw std::runtime_error("Failed to read file");
+    }
 
     return _file.gcount();
 }
