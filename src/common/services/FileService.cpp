@@ -67,7 +67,7 @@ std::string FileService::get_version(const std::string& path)
 {
     std::string result;
 
-    for (unsigned int i = 1; i < std::numeric_limits<int>::max(); ++i)
+    for (unsigned int i = 1; i < std::numeric_limits<unsigned int>::max(); ++i)
     {
         result = "_v" + std::to_string(i);
 

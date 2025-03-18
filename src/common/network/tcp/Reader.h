@@ -57,7 +57,7 @@ namespace Tcp
 
             _buffer.commit(HEADER_SIZE);
 
-            co_return extract_model<Tcp::header_t>(CONTENT_SIZE);
+            co_return extract_model<Tcp::header_t>(HEADER_SIZE);
         }
 
         /**
@@ -85,11 +85,11 @@ namespace Tcp
 
             if constexpr (std::is_base_of_v<ISerializable, TModel>)
             {
-                return extract_serializable_model<TModel>(content_length);
+                return std::move(extract_serializable_model<TModel>(content_length));
             }
             else
             {
-                return extract_model<TModel>(content_length);
+                return std::move(extract_model<TModel>(content_length));
             }
         }
 
@@ -113,7 +113,7 @@ namespace Tcp
 
             _buffer.consume(content_length);
 
-            return model;
+            return std::move(model);
         }
 
         /**
@@ -137,12 +137,14 @@ namespace Tcp
             Tcp::header_t consumed_bytes = model.deserialize(_buffer);
             if (consumed_bytes != content_length)
             {
-                throw Tcp::OperationException(-1, std::format("Attempt to consume ({}) bytes, although ({}) bytes were read", consumed_bytes, content_length));
+                throw Tcp::OperationException(
+                    -1,
+                    std::format("Attempt to consume ({}) bytes, although ({}) bytes were read", consumed_bytes, content_length));
             }
 
             _buffer.consume(consumed_bytes);
 
-            return model;
+            return std::move(model);
         }
 
         boost::asio::ip::tcp::socket& _socket;

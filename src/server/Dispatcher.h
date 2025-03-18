@@ -24,7 +24,7 @@ namespace Server
          * @param request_metadata Request metadata.
          * @param session A shared pointer to the session handling the request.
          */
-        boost::asio::awaitable<void> handle(RequestMetadata& request_metadata);
+        boost::asio::awaitable<void> handle(const RequestMetadata& request_metadata);
 
     private:
         std::unordered_map<std::string, std::unique_ptr<IController>> _controllers;

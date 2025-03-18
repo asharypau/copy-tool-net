@@ -36,7 +36,7 @@ void SessionManager::end_session(const size_t client_id)
 {
     if (_sessions.empty())
     {
-        Logger::error("Unable to terminate session, because there are no active sessions");
+        Logger::error(std::format("Unable to terminate the session, because there are no active sessions for client {}", client_id));
         return;
     }
 
@@ -47,6 +47,6 @@ void SessionManager::end_session(const size_t client_id)
     }
     else
     {
-        Logger::error(std::format("Unable to terminate session, because invalid client id was provided: {}", client_id));
+        Logger::error(std::format("Unable to terminate the session, because invalid client id was provided: {}", client_id));
     }
 }

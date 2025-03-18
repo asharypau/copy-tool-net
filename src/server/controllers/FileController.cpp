@@ -29,7 +29,7 @@ boost::asio::awaitable<FileHeaders> FileController::read_headers()
     co_return file_headers;
 }
 
-boost::asio::awaitable<void> FileController::read_file(FileHeaders& headers)
+boost::asio::awaitable<void> FileController::read_file(const FileHeaders& headers)
 {
     _file_storage.open_create(headers.name);
 

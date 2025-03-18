@@ -33,17 +33,20 @@ namespace Tcp
 
     private:
         /**
-         * @brief Creates a shared buffer containing serialized content prefixed with its size.
+         * @brief Creates a shared buffer containing serialized content prefixed
+         * with its size.
          *
          * The function operates as follows:
-         * - Allocates a buffer with enough space to store a header (`Tcp::HEADER_SIZE`) and the content.
+         * - Allocates a buffer with enough space to store a header
+         * (`Tcp::HEADER_SIZE`) and the content.
          * - Copies the content length into the header section of the buffer.
          * - Copies the raw content into the remaining portion of the buffer.
          * - Returns a buffer.
          *
          * @tparam TContent The type of the content to be stored in the buffer.
          * @param content_length The size of the content in bytes.
-         * @param raw_content A pointer to the raw content to be stored in the buffer.
+         * @param raw_content A pointer to the raw content to be stored in the
+         * buffer.
          * @return A formatted buffer.
          */
         template <class TContent>
@@ -60,7 +63,10 @@ namespace Tcp
         boost::asio::awaitable<void> internal_write_async(Tcp::header_t content_length, const TContent* raw_content)
         {
             std::vector<std::byte> buffer = get_buffer(content_length, raw_content);
-            auto [error, _] = co_await boost::asio::async_write(_socket, boost::asio::buffer(buffer), boost::asio::as_tuple(boost::asio::use_awaitable));
+            auto [error, _] = co_await boost::asio::async_write(
+                _socket,
+                boost::asio::buffer(buffer),
+                boost::asio::as_tuple(boost::asio::use_awaitable));
 
             if (error)
             {

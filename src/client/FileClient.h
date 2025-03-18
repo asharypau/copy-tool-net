@@ -26,7 +26,7 @@ namespace Client
          *
          * @param message The file message to be written asynchronously.
          */
-        boost::asio::awaitable<void> write(Message& message);
+        boost::asio::awaitable<void> write(const Message& message);
 
         /**
          * @brief Reads confirmations of sending messages via the TCP reader.
@@ -44,7 +44,7 @@ namespace Client
          *
          * @param message The message containing file details (confirmation ID, file name, and path).
          */
-        boost::asio::awaitable<void> write_headers(Message& message);
+        boost::asio::awaitable<void> write_headers(const Message& message);
 
         /**
          * @brief Reads file data in batches and writes it asynchronously to the TCP socket.
@@ -55,7 +55,7 @@ namespace Client
          * - After writing, it recursively calls `write_file` to continue sending the next batch.
          * - If no more data is available, it closes the file and invokes the provided callback (if available) to signal the completion of the write process.
          */
-        boost::asio::awaitable<void> write_file(Message& message);
+        boost::asio::awaitable<void> write_file(const Message& message);
 
         static constexpr size_t BATCH_SIZE = 1024 * 1024;
 

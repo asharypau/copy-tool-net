@@ -14,7 +14,7 @@ FileClient::FileClient(boost::asio::ip::tcp::socket& socket)
 {
 }
 
-boost::asio::awaitable<void> FileClient::write(Message& message)
+boost::asio::awaitable<void> FileClient::write(const Message& message)
 {
     size_t batches_count = (message.size + BATCH_SIZE - 1) / BATCH_SIZE;
 
@@ -34,7 +34,7 @@ boost::asio::awaitable<Tcp::header_t> FileClient::read_confirmation()
     co_return confirmation_id;
 }
 
-boost::asio::awaitable<void> FileClient::write_headers(Message& message)
+boost::asio::awaitable<void> FileClient::write_headers(const Message& message)
 {
     FileHeaders headers;
     headers.confirmation_id = message.id;
@@ -43,7 +43,7 @@ boost::asio::awaitable<void> FileClient::write_headers(Message& message)
     co_await _tcp_writer.write_async(headers);
 }
 
-boost::asio::awaitable<void> FileClient::write_file(Message& message)
+boost::asio::awaitable<void> FileClient::write_file(const Message& message)
 {
     size_t remaining_bytes_to_read = message.size;
     _file_service.open_read(message.path);

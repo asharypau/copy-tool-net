@@ -23,6 +23,23 @@ public:
     CmdArgs parse(int argc, char* argv[]);
 
 private:
+    template <std::size_t Size>
+    size_t exists(const std::string_view arg, const std::array<std::string, Size>& tokens) const noexcept
+    {
+        bool exists = false;
+
+        for (size_t i = 0; i < tokens.size(); i++)
+        {
+            if (arg.find(tokens[i]) != std::string::npos)
+            {
+                exists = true;
+                break;
+            }
+        }
+
+        return exists;
+    }
+
     /**
      * @brief Parses a given argument string and extracts a value based on specified tokens.
      *
@@ -36,30 +53,22 @@ private:
      * @param tokens An array of strings representing the tokens to search for in the argument string.
      * @return TResult The extracted value converted to the TResult type.
      */
-    template <class TResult, std::size_t Size>
-    TResult get(const std::string_view arg, const std::array<std::string, Size> tokens) const
+    template <class TResult>
+    TResult get(const std::string_view arg) const
     {
         TResult output{};
 
-        for (size_t i = 0; i < tokens.size(); i++)
+        const std::size_t delimiter_pos = arg.find(delimiter);
+        const std::string_view substr = arg.substr(delimiter_pos + 1);
+
+        if constexpr (std::is_integral_v<TResult> || std::is_enum_v<TResult>)
         {
-            if (arg.find(tokens[i]) != std::string::npos)
-            {
-                const std::size_t delimiter_pos = arg.find(delimiter);
-                const std::string_view substr = arg.substr(delimiter_pos + 1);
-
-                if constexpr (std::is_integral_v<TResult> || std::is_enum_v<TResult>)
-                {
-                    int val = std::stoi(std::string(substr));
-                    output = static_cast<TResult>(val);
-                }
-                else if constexpr (std::is_same_v<TResult, std::string>)
-                {
-                    output = substr;
-                }
-
-                break;
-            }
+            int val = std::stoi(std::string(substr));
+            output = static_cast<TResult>(val);
+        }
+        else if constexpr (std::is_same_v<TResult, std::string>)
+        {
+            output = substr;
         }
 
         return output;

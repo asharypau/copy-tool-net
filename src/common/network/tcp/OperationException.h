@@ -11,9 +11,9 @@ namespace Tcp
     class OperationException : public std::runtime_error
     {
     public:
-        explicit OperationException(boost::system::error_code& err)
-            : std::runtime_error(std::move(err.message())),
-              _error_code(err.value())
+        explicit OperationException(boost::system::error_code error_code)
+            : std::runtime_error(std::move(error_code.message())),
+              _error_code(error_code.value())
         {
         }
 

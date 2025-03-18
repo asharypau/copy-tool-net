@@ -53,7 +53,7 @@ namespace Server
          *
          * @param confirmation_id The ID used for confirming the file transfer.
          */
-        boost::asio::awaitable<void> read_file(FileHeaders& headers);
+        boost::asio::awaitable<void> read_file(const FileHeaders& headers);
 
         /**
          * @brief Initiates an asynchronous write operation to confirm file transfer completion.

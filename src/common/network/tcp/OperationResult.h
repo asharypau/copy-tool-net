@@ -13,17 +13,17 @@ namespace Tcp
     class OperationResult
     {
     public:
-        explicit OperationResult(TResult res)
-            : _result(std::move(res)),
+        explicit OperationResult(TResult result)
+            : _result(std::move(result)),
               _error_code(0),
               _error_message()
         {
         }
 
-        explicit OperationResult(boost::system::error_code& err)
+        explicit OperationResult(boost::system::error_code error_code)
             : _result(),
-              _error_code(err.value()),
-              _error_message(err.message())
+              _error_code(error_code.value()),
+              _error_message(std::move(error_code.message()))
         {
             if (_error_message == "The operation completed successfully")
             {
@@ -31,10 +31,10 @@ namespace Tcp
             }
         }
 
-        OperationResult(TResult res, boost::system::error_code& err)
-            : _result(std::move(res)),
-              _error_code(err.value()),
-              _error_message(err.message())
+        OperationResult(TResult result, boost::system::error_code error_code)
+            : _result(std::move(result)),
+              _error_code(error_code.value()),
+              _error_message(std::move(error_code.message()))
         {
             if (_error_message == "The operation completed successfully")
             {
@@ -42,17 +42,17 @@ namespace Tcp
             }
         }
 
-        OperationResult(TResult res, int err_code, std::string err_msg)
+        OperationResult(TResult res, int error_code, std::string error_message)
             : _result(std::move(res)),
-              _error_code(err_code),
-              _error_message(err_msg)
+              _error_code(error_code),
+              _error_message(std::move(error_message))
         {
         }
 
-        OperationResult(int err_code, std::string err_msg)
+        OperationResult(int error_code, std::string error_message)
             : _result(),
-              _error_code(err_code),
-              _error_message(err_msg)
+              _error_code(error_code),
+              _error_message(std::move(error_message))
         {
         }
 
