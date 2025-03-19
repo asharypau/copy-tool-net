@@ -1,28 +1,42 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.31)
 project(CopyToolIpcSln LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Add sanitizers for debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        message(STATUS "Debug build with Clang")
 
-    add_compile_options(
-        -g
-        -O0
-        -fno-omit-frame-pointer
-        -fno-inline
-        -fvisibility=hidden
-        -fsanitize=address
-        -fsanitize=undefined
-    )
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
-    add_link_options(
-        -fsanitize=address
-        -fsanitize=undefined
-    )
+        add_compile_options(
+            -g
+            -O0
+            -fno-omit-frame-pointer
+            -fno-inline
+            -fvisibility=hidden
+            -fsanitize=address
+            -fsanitize=undefined
+        )
+
+        add_link_options(
+            -fsanitize=address
+            -fsanitize=undefined
+        )
+    endif()
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        message(STATUS "Debug build with MSVC")
+
+        add_compile_options(
+            /MDd
+            /EHsc
+            /DEBUG
+            /fsanitize=address
+        )
+    endif()
 endif()
 
 # Download and configure boost

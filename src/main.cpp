@@ -2,7 +2,7 @@
 #include "utils/CmdArgs.h"
 #include "utils/CmdArgsParser.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     CmdArgsParser parser;
     ApplicationBuilder builder;
