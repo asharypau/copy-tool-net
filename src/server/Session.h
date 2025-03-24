@@ -27,26 +27,13 @@ namespace Server
             Logger::info(std::format("Session started for the client {}", _client_id));
         }
 
-        ~Session()
-        {
-            try
-            {
-                _socket.close();
-                Logger::info(std::format("Session ended for the client {}", _client_id));
-            }
-            catch (const std::exception& ex)
-            {
-                Logger::error(std::format("An error occurred during session destruction: {} for the client {}", ex.what(), _client_id));
-            }
-        }
-
         /**
          * @brief Runs a new session.
          */
         template <class TCallback>
         boost::asio::awaitable<void> run(TCallback callback)
         {
-            while (true)
+            while (_socket.is_open())
             {
                 try
                 {
@@ -62,18 +49,18 @@ namespace Server
                 }
                 catch (const Tcp::OperationException& ex)
                 {
-                    Logger::error(std::format("An error occurred during session run: {} for the client {}", ex.what(), _client_id));
+                    Logger::error(std::format("An error occurred during the session run: {} for the client {}", ex.what(), _client_id));
 
                     if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)
                     {
-                        break;
+                        stop();
                     }
                 }
                 catch (const std::exception& ex)
                 {
-                    Logger::error(std::format("An error error occurred during session run: {} for the client {}", ex.what(), _client_id));
+                    Logger::error(std::format("An error occurred during the session run: {} for the client {}", ex.what(), _client_id));
 
-                    break;
+                    stop();
                 }
             }
 
@@ -81,6 +68,19 @@ namespace Server
         }
 
     private:
+        void stop()
+        {
+            try
+            {
+                _socket.close();
+                Logger::info(std::format("Session stopped for the client {}", _client_id));
+            }
+            catch (const std::exception& ex)
+            {
+                Logger::error(std::format("An error occurred during session stop: {} for the client {}", ex.what(), _client_id));
+            }
+        }
+
         boost::asio::ip::tcp::socket _socket;
         Tcp::Reader _tcp_reader;
         Tcp::Writer _tcp_writer;

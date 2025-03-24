@@ -33,16 +33,11 @@ boost::asio::awaitable<void> FileController::read_file(const FileHeaders& header
 {
     _file_storage.open_create(headers.name);
 
-    while (true)
+    while (_request_size != 0)
     {
         auto [file_request, content_length] = co_await _tcp_reader.read_async<FileRequest>();
         _request_size -= content_length;
         _file_storage.write(file_request.batch.data(), file_request.batch_size);
-
-        if (_request_size == 0)
-        {
-            break;
-        }
     }
 
     _file_storage.close();

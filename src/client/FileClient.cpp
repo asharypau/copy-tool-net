@@ -48,7 +48,7 @@ boost::asio::awaitable<void> FileClient::write_file(const Message& message)
     size_t remaining_bytes_to_read = message.size;
     _file_service.open_read(message.path);
 
-    while (true)
+    while (remaining_bytes_to_read != 0)
     {
         FileRequest request;
         request.batch_size = remaining_bytes_to_read > BATCH_SIZE ? BATCH_SIZE : remaining_bytes_to_read;
@@ -58,10 +58,6 @@ boost::asio::awaitable<void> FileClient::write_file(const Message& message)
         co_await _tcp_writer.write_async(request);
 
         remaining_bytes_to_read -= request.batch_size;
-        if (remaining_bytes_to_read == 0)
-        {
-            break;
-        }
     }
 
     _file_service.close();
