@@ -5,15 +5,16 @@
 #include <string>
 #include <vector>
 
+#include "../common/network/tcp/Constants.h"
 #include "../network/tcp/ISerializable.h"
 
 class RequestMetadata : public Tcp::ISerializable
 {
 public:
-    std::vector<std::byte> serialize() override
+    std::vector<unsigned char> serialize() override
     {
         size_t offset = 0;
-        std::vector<std::byte> buffer(Tcp::HEADER_SIZE * 2 + endpoint.size());
+        std::vector<unsigned char> buffer(Tcp::HEADER_SIZE * 2 + endpoint.size());
 
         // size
         std::memcpy(buffer.data() + offset, &size, Tcp::HEADER_SIZE);
@@ -31,10 +32,10 @@ public:
         return std::move(buffer);
     }
 
-    Tcp::header_t deserialize(boost::beast::flat_buffer& buffer) override
+    void deserialize(const std::vector<unsigned char>& bytes) override
     {
         Tcp::header_t offset = 0;
-        char* begin = static_cast<char*>(buffer.data().data());
+        const unsigned char* begin = bytes.data();
 
         // size
         std::memcpy(&size, begin + offset, Tcp::HEADER_SIZE);
@@ -46,10 +47,8 @@ public:
         offset += Tcp::HEADER_SIZE;
 
         // endpoint
-        endpoint.assign(begin + offset, endpoint_size);
+        endpoint = std::string(begin + offset, begin + offset + endpoint_size);
         offset += endpoint_size;
-
-        return offset;
     }
 
     Tcp::header_t size = 0;

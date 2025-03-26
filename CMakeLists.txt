@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(CopyToolIpcSln LANGUAGES CXX)
+project(CopyToolNetSln LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,6 +17,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
             -fno-omit-frame-pointer
             -fno-inline
             -fvisibility=hidden
+            -fms-compatibility
             -fsanitize=address
             -fsanitize=undefined
         )
@@ -49,5 +50,11 @@ FetchContent_Declare(
     EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(Boost)
+
+# Find OpenSSL
+set(OPENSSL_ROOT_DIR "D:/Projects/External/vcpkg/installed/x64-windows")
+set(OPENSSL_LIBRARIES "D:/Projects/External/vcpkg/installed/x64-windows/lib")
+set(OPENSSL_INCLUDE_DIR "D:/Projects/External/vcpkg/installed/x64-windows/include")
+find_package(OpenSSL REQUIRED)
 
 add_subdirectory(src)

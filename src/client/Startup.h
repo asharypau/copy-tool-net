@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <string>
 
+#include "../common/network/tcp/Socket.h"
 #include "../infrastructure/IApplication.h"
 #include "MessagesPrompt.h"
 #include "MessagesQueueHandler.h"
@@ -27,7 +28,7 @@ namespace Client
         void run_user_thread();
 
         boost::asio::io_context _context;
-        boost::asio::ip::tcp::socket _socket;
+        Tcp::Socket _socket;
         MessagesQueueHandler _messages_queue_handler;
         MessagesPrompt _messages_prompt;
         unsigned short _port;

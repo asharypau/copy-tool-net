@@ -23,7 +23,7 @@ Startup::~Startup()
 {
     try
     {
-        _socket.close();
+        _socket.get().close();
     }
     catch (const std::exception& ex)
     {
@@ -56,6 +56,7 @@ boost::asio::awaitable<void> Startup::connect()
     Tcp::OperationResult<bool> op_result = co_await Tcp::Connector::connect(_port, _host, _socket);
     if (op_result)
     {
+        co_await _socket.handshake(Tcp::HandshakeType::CLIENT);
         run_user_thread();
     }
     else

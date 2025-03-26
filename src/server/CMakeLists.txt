@@ -12,6 +12,8 @@ target_link_libraries(
     Boost::system
     Boost::asio
     Boost::beast
+    OpenSSL::Crypto
+    OpenSSL::SSL
 )
 
 target_include_directories(Server PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

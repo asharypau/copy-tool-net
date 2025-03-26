@@ -8,7 +8,7 @@
 
 using namespace Client;
 
-MessagesQueueHandler::MessagesQueueHandler(boost::asio::ip::tcp::socket& socket)
+MessagesQueueHandler::MessagesQueueHandler(Tcp::Socket& socket)
     : _socket(socket),
       _messages(),
       _pending_messages(),
@@ -29,7 +29,7 @@ void MessagesQueueHandler::handle(std::vector<Message>& messages)
     if (!_writing_in_progress)
     {
         _writing_in_progress = true;
-        boost::asio::co_spawn(_socket.get_executor(), write(), boost::asio::detached);
+        boost::asio::co_spawn(_socket.get().get_executor(), write(), boost::asio::detached);
     }
 }
 
@@ -61,7 +61,7 @@ boost::asio::awaitable<void> MessagesQueueHandler::write()
                 if (!_reading_in_progress)
                 {
                     _reading_in_progress = true;
-                    boost::asio::co_spawn(_socket.get_executor(), read_confirmation(), boost::asio::detached);
+                    boost::asio::co_spawn(_socket.get().get_executor(), read_confirmation(), boost::asio::detached);
                 }
             }
         }

@@ -5,15 +5,17 @@
 
 #include "../common/models/Message.h"
 #include "../common/network/tcp/Reader.h"
+#include "../common/network/tcp/Socket.h"
 #include "../common/network/tcp/Writer.h"
 #include "../common/services/FileService.h"
+
 
 namespace Client
 {
     class FileClient
     {
     public:
-        explicit FileClient(boost::asio::ip::tcp::socket& socket);
+        explicit FileClient(Tcp::Socket& socket);
 
         /**
          * @brief Writes asynchronously message via the TCP writer.

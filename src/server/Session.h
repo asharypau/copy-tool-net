@@ -6,6 +6,7 @@
 #include <format>
 
 #include "../common/network/tcp/Reader.h"
+#include "../common/network/tcp/Socket.h"
 #include "../common/network/tcp/Writer.h"
 #include "../utils/Logger.h"
 #include "Dispatcher.h"
@@ -16,7 +17,7 @@ namespace Server
     class Session
     {
     public:
-        Session(const size_t client_id, boost::asio::ip::tcp::socket socket)
+        Session(const size_t client_id, Tcp::Socket socket)
             : _socket(std::move(socket)),
               _tcp_reader(_socket),
               _tcp_writer(_socket),
@@ -33,7 +34,9 @@ namespace Server
         template <class TCallback>
         boost::asio::awaitable<void> run(TCallback callback)
         {
-            while (_socket.is_open())
+            co_await _socket.handshake(Tcp::HandshakeType::SERVER);
+
+            while (_socket.get().is_open())
             {
                 try
                 {
@@ -72,7 +75,7 @@ namespace Server
         {
             try
             {
-                _socket.close();
+                _socket.get().close();
                 Logger::info(std::format("Session stopped for the client {}", _client_id));
             }
             catch (const std::exception& ex)
@@ -81,7 +84,7 @@ namespace Server
             }
         }
 
-        boost::asio::ip::tcp::socket _socket;
+        Tcp::Socket _socket;
         Tcp::Reader _tcp_reader;
         Tcp::Writer _tcp_writer;
         FileStorage _file_storage;

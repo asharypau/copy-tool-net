@@ -7,7 +7,7 @@
 
 using namespace Client;
 
-FileClient::FileClient(boost::asio::ip::tcp::socket& socket)
+FileClient::FileClient(Tcp::Socket& socket)
     : _tcp_writer(socket),
       _tcp_reader(socket),
       _file_service()

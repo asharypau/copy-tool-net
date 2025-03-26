@@ -4,15 +4,16 @@
 #include <cstddef>
 #include <string>
 
+#include "../common/network/tcp/Constants.h"
 #include "../network/tcp/ISerializable.h"
 
 class FileHeaders : public Tcp::ISerializable
 {
 public:
-    std::vector<std::byte> serialize() override
+    std::vector<unsigned char> serialize() override
     {
         size_t offset = 0;
-        std::vector<std::byte> buffer(Tcp::HEADER_SIZE * 2 + name.size());
+        std::vector<unsigned char> buffer(Tcp::HEADER_SIZE * 2 + name.size());
 
         // confirmation_id
         std::memcpy(buffer.data() + offset, &confirmation_id, Tcp::HEADER_SIZE);
@@ -30,10 +31,10 @@ public:
         return std::move(buffer);
     }
 
-    Tcp::header_t deserialize(boost::beast::flat_buffer& buffer) override
+    void deserialize(const std::vector<unsigned char>& bytes) override
     {
         Tcp::header_t offset = 0;
-        char* begin = static_cast<char*>(buffer.data().data());
+        const unsigned char* begin = bytes.data();
 
         // confirmation_id
         std::memcpy(&confirmation_id, begin + offset, Tcp::HEADER_SIZE);
@@ -45,10 +46,8 @@ public:
         offset += Tcp::HEADER_SIZE;
 
         // name
-        name.assign(begin + offset, name_size);
+        name = std::string(begin + offset, begin + offset + name_size);
         offset += name_size;
-
-        return offset;
     }
 
     Tcp::header_t confirmation_id = 0;

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../common/models/Message.h"
+#include "../common/network/tcp/Socket.h"
 #include "FileClient.h"
 
 namespace Client
@@ -14,7 +15,7 @@ namespace Client
     class MessagesQueueHandler
     {
     public:
-        explicit MessagesQueueHandler(boost::asio::ip::tcp::socket& socket);
+        explicit MessagesQueueHandler(Tcp::Socket& socket);
 
         /**
          * @brief Handles a batch of messages by adding them to the queue and initiating reading/writing processes.
@@ -54,7 +55,7 @@ namespace Client
          */
         boost::asio::awaitable<void> read_confirmation();
 
-        boost::asio::ip::tcp::socket& _socket;
+        Tcp::Socket& _socket;
         std::queue<Message> _messages;
         std::vector<Message> _pending_messages;
         FileClient _file_client;

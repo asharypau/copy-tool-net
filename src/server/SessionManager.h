@@ -3,6 +3,7 @@
 
 #include <boost/asio.hpp>
 
+#include "../common/network/tcp/Socket.h"
 #include "Session.h"
 
 namespace Server
@@ -12,7 +13,7 @@ namespace Server
     public:
         explicit SessionManager(boost::asio::io_context& context);
 
-        void start_new(const size_t client_id, boost::asio::ip::tcp::socket socket);
+        void start_new(const size_t client_id, Tcp::Socket socket);
 
     private:
         void end_session(const size_t client_id);
