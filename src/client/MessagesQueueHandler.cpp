@@ -51,18 +51,16 @@ boost::asio::awaitable<void> MessagesQueueHandler::write()
             co_await _file_client.write(*message);
             Logger::info("The message " + message->name + ':' + message->path + " has been sent.");
 
+            _pending_messages.push_back(std::move(*message));
+            if (!_reading_in_progress)
+            {
+                _reading_in_progress = true;
+                boost::asio::co_spawn(_socket.get_executor(), read_confirmation(), boost::asio::detached);
+            }
+
             {
                 std::unique_lock<std::mutex> lock(_mtx);
-
-                _pending_messages.push_back(std::move(*message));
                 _messages.pop();
-
-                if (!_reading_in_progress)
-                {
-                    _reading_in_progress = true;
-                    boost::asio::co_spawn(_socket.get_executor(), read_confirmation(), boost::asio::detached);
-                }
-
                 stop = _messages.empty();
             }
         }
@@ -96,26 +94,22 @@ boost::asio::awaitable<void> MessagesQueueHandler::read_confirmation()
         {
             Tcp::header_t confirmation_id = co_await _file_client.read_confirmation();
 
-            {
-                std::unique_lock<std::mutex> lock(_mtx);
-
-                std::vector<Message>::iterator it = std::find_if(
-                    _pending_messages.begin(),
-                    _pending_messages.end(),
-                    [confirmation_id](const Message& current)
-                    {
-                        return current.id == confirmation_id;
-                    });
-
-                if (it != _pending_messages.end())
+            std::vector<Message>::iterator it = std::find_if(
+                _pending_messages.begin(),
+                _pending_messages.end(),
+                [confirmation_id](const Message& current)
                 {
-                    Logger::info("Confirmation of successful message " + it->name + ':' + it->path + " sending received.");
+                    return current.id == confirmation_id;
+                });
 
-                    _pending_messages.erase(it);
-                }
+            if (it != _pending_messages.end())
+            {
+                Logger::info("Confirmation of successful message " + it->name + ':' + it->path + " sending received.");
 
-                stop = _pending_messages.empty();
+                _pending_messages.erase(it);
             }
+
+            stop = _pending_messages.empty();
         }
         catch (const Tcp::OperationException& ex)
         {
@@ -133,6 +127,5 @@ boost::asio::awaitable<void> MessagesQueueHandler::read_confirmation()
         }
     }
 
-    std::unique_lock<std::mutex> lock(_mtx);
     _reading_in_progress = false;
 }
