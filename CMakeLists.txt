@@ -18,13 +18,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
             -fno-inline
             -fvisibility=hidden
             -fms-compatibility
-            -fsanitize=address
-            -fsanitize=undefined
+            # -fsanitize=address
+            # -fsanitize=undefined
         )
 
         add_link_options(
-            -fsanitize=address
-            -fsanitize=undefined
+            # -fsanitize=address
+            # -fsanitize=undefined
         )
     endif()
 

@@ -16,16 +16,18 @@ namespace Client
     {
     public:
         Startup(unsigned short port, std::string host);
-        ~Startup();
 
         void run() override;
 
     private:
         boost::asio::awaitable<void> connect();
+        boost::asio::awaitable<bool> handshake();
+
         /**
          * @brief Starts a new thread to handle user messages asynchronously.
          */
         void run_user_thread();
+        void stop();
 
         boost::asio::io_context _context;
         Tcp::Socket _socket;
@@ -33,7 +35,6 @@ namespace Client
         MessagesPrompt _messages_prompt;
         unsigned short _port;
         std::string _host;
-        bool _stop;  // should be atomic
     };
 }
 

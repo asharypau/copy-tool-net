@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 
+#include "../common/network/tcp/OperationException.h"
 #include "../utils/Logger.h"
 
 using namespace Client;
@@ -29,7 +30,7 @@ void MessagesQueueHandler::handle(std::vector<Message>& messages)
     if (!_writing_in_progress)
     {
         _writing_in_progress = true;
-        boost::asio::co_spawn(_socket.get().get_executor(), write(), boost::asio::detached);
+        boost::asio::co_spawn(_socket.get_executor(), write(), boost::asio::detached);
     }
 }
 
@@ -44,7 +45,7 @@ boost::asio::awaitable<void> MessagesQueueHandler::write()
             std::optional<Message> message;
             {
                 std::unique_lock<std::mutex> lock(_mtx);
-                message = _messages.front();
+                message.emplace(_messages.front());
             }
 
             co_await _file_client.write(*message);
@@ -56,13 +57,13 @@ boost::asio::awaitable<void> MessagesQueueHandler::write()
                 _pending_messages.push_back(std::move(*message));
                 _messages.pop();
 
-                stop = _messages.empty();
-
                 if (!_reading_in_progress)
                 {
                     _reading_in_progress = true;
-                    boost::asio::co_spawn(_socket.get().get_executor(), read_confirmation(), boost::asio::detached);
+                    boost::asio::co_spawn(_socket.get_executor(), read_confirmation(), boost::asio::detached);
                 }
+
+                stop = _messages.empty();
             }
         }
         catch (const Tcp::OperationException& ex)

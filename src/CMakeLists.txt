@@ -6,7 +6,11 @@ add_executable(
     main.cpp
     infrastructure/ApplicationBuilder.cpp
     common/services/FileService.cpp
+    common/network/tcp/Socket.cpp
+    common/network/tcp/Acceptor.cpp
+    common/network/tcp/Connector.cpp
     common/encryption/Rsa.cpp
+    common/encryption/Aes.cpp
     utils/CmdArgsParser.cpp
 )
 

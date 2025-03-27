@@ -17,13 +17,9 @@ namespace Encryption
     {
     public:
         static asymmetric_key_t generate_key(size_t size);
-
         static asymmetric_key_t to_public_key(const std::string& key_str);
-
         static std::string extract_public_key(asymmetric_key_t key);
-
         static std::vector<unsigned char> encrypt(asymmetric_key_t key, const std::vector<unsigned char>& data);
-
         static std::vector<unsigned char> decrypt(asymmetric_key_t key, const std::vector<unsigned char>& encrypted_data);
     };
 }

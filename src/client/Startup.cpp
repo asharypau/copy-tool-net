@@ -14,36 +14,24 @@ Startup::Startup(unsigned short port, std::string host)
       _messages_queue_handler(_socket),
       _messages_prompt(),
       _port(port),
-      _host(host),
-      _stop(false)
+      _host(host)
 {
-}
-
-Startup::~Startup()
-{
-    try
-    {
-        _socket.get().close();
-    }
-    catch (const std::exception& ex)
-    {
-        Logger::error(std::format("An error occurred during client destruction: {}", ex.what()));
-    }
 }
 
 void Startup::run()
 {
     try
     {
-        Logger::info("Client started");
+        Logger::info("The client started");
 
         boost::asio::co_spawn(_context, connect(), boost::asio::detached);
-        while (!_stop)
+
+        do
         {
             _context.run();
-        }
+        } while (_socket.is_open());
 
-        Logger::info("Client stopped");
+        Logger::info("The client stopped");
     }
     catch (const std::exception& ex)
     {
@@ -56,13 +44,32 @@ boost::asio::awaitable<void> Startup::connect()
     Tcp::OperationResult<bool> op_result = co_await Tcp::Connector::connect(_port, _host, _socket);
     if (op_result)
     {
-        co_await _socket.handshake(Tcp::HandshakeType::CLIENT);
-        run_user_thread();
+        if (co_await handshake())
+        {
+            run_user_thread();
+        }
     }
     else
     {
-        _stop = true;
         Logger::error(std::format("Error occurred during connect {}: {}", op_result.error_code(), op_result.error_message()));
+        stop();
+    }
+}
+
+boost::asio::awaitable<bool> Startup::handshake()
+{
+    try
+    {
+        co_await _socket.handshake(Tcp::HandshakeType::CLIENT);
+
+        co_return true;
+    }
+    catch (const std::exception& ex)
+    {
+        Logger::error(std::format("An error occurred during the client handshake: {}", ex.what()));
+        stop();
+
+        co_return false;
     }
 }
 
@@ -71,12 +78,12 @@ void Startup::run_user_thread()
     std::thread user_thread(
         [this]
         {
-            while (!_stop)
+            while (_socket.is_open())
             {
                 std::vector<Message> messages = _messages_prompt.get();
                 if (messages.empty())
                 {
-                    _stop = true;
+                    stop();
                 }
 
                 _messages_queue_handler.handle(messages);
@@ -84,4 +91,16 @@ void Startup::run_user_thread()
         });
 
     user_thread.detach();  // the thread is detached from the main thread to run independently
+}
+
+void Startup::stop()
+{
+    try
+    {
+        _socket.close();
+    }
+    catch (const std::exception& ex)
+    {
+        Logger::error(std::format("An error occurred during stopping the client: {}", ex.what()));
+    }
 }
