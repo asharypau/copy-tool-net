@@ -84,18 +84,16 @@ std::vector<unsigned char> Aes::decrypt(const Encryption::symmetric_key_t& key, 
         throw std::runtime_error("Error initializing AES decryption");
     }
 
+    // Decrypt the data
     int length = 0;
     std::vector<unsigned char> decrypted_data(encrypted_data.size());
-
-    // Decrypt the data
     if (EVP_DecryptUpdate(ctx.get(), decrypted_data.data(), &length, encrypted_data.data(), encrypted_data.size()) != 1)
     {
         throw std::runtime_error("Error during AES decryption");
     }
 
-    int final_length = 0;
-
     // Finish the decryption process
+    int final_length = 0;
     if (EVP_DecryptFinal_ex(ctx.get(), decrypted_data.data() + length, &final_length) != 1)
     {
         throw std::runtime_error("Error during AES encryption finalization");

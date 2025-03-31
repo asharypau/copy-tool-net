@@ -115,10 +115,9 @@ std::vector<unsigned char> Rsa::encrypt(asymmetric_key_t key, const std::vector<
         throw std::runtime_error("Error setting RSA encryption padding");
     }
 
+    // Encrypt data using RSA
     std::vector<unsigned char> encrypted_data(EVP_PKEY_size(key.get()));
     std::size_t encrypted_data_length = encrypted_data.size();
-
-    // Encrypt data using RSA
     if (EVP_PKEY_encrypt(ctx.get(), encrypted_data.data(), &encrypted_data_length, bytes.data(), bytes.size()) <= 0)
     {
         throw std::runtime_error("Error during RSA encryption");
@@ -155,10 +154,9 @@ std::vector<unsigned char> Rsa::decrypt(asymmetric_key_t key, const std::vector<
         throw std::runtime_error("Error setting RSA decryption padding");
     }
 
+    // Decrypt data using RSA
     std::vector<unsigned char> decrypted_data(EVP_PKEY_size(key.get()));
     std::size_t decrypted_data_length = decrypted_data.size();
-
-    // Decrypt data using RSA
     if (EVP_PKEY_decrypt(ctx.get(), decrypted_data.data(), &decrypted_data_length, encrypted_bytes.data(), encrypted_bytes.size()) <= 0)
     {
         throw std::runtime_error("Error during RSA decryption");
