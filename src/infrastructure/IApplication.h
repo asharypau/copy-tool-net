@@ -5,7 +5,7 @@ class IApplication
 {
 public:
     /**
-     * @brief Executes the application.
+     * @brief Runs the application.
      */
     virtual void run() = 0;
 

@@ -13,9 +13,22 @@ namespace Server
     public:
         explicit SessionManager(boost::asio::io_context& context);
 
+        /**
+         * @brief Starts a new session for a given client.
+         *
+         * This function initializes and starts a new session using the provided client id and TCP socket.
+         *
+         * @param client_id The unique identifier of the client.
+         * @param socket The TCP socket associated with the client.
+         */
         void start_new(const std::size_t client_id, Tcp::Socket socket);
 
     private:
+        /**
+         * @brief Ends a session for a given client.
+         *
+         * @param client_id The unique identifier of the client whose session should be terminated.
+         */
         void end_session(const std::size_t client_id);
 
         boost::asio::io_context& _context;

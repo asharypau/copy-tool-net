@@ -24,18 +24,67 @@ namespace Tcp
         operator boost::asio::ip::tcp::socket&() noexcept;
         Socket& operator=(const Socket&) = delete;  // Disallow copy assignment
 
+        /**
+         * @brief Checks if the socket is open.
+         *
+         * @return bool `true` if the socket is open, `false` if the socket is closed.
+         */
         bool is_open();
+
+        /**
+         * @brief Closes the socket.
+         */
         void close();
 
+        /**
+         * @brief Performs a handshake for the given connection type.
+         *
+         * @param type The type of handshake to perform, represented by `Tcp::HandshakeType`
+         * (e.g., CLIENT or SERVER).
+         *
+         * @throws std::invalid_argument If the type is invalid.
+         */
         boost::asio::awaitable<void> handshake(Tcp::HandshakeType type);
+
+        /**
+         * @brief Asynchronously reads data.
+         *
+         * @return boost::asio::awaitable<std::vector<unsigned char>> An awaitable coroutine that
+         * returns a `std::vector<unsigned char>` containing the data that was read.
+         *
+         * @throws Tcp::OperationException If an error occurs during the read operation (e.g., network failure,
+         * timeout, or invalid data format), the exception will be thrown and should be handled
+         * by the caller.
+         */
         boost::asio::awaitable<std::vector<unsigned char>> read_async();
+
+        /**
+         * @brief Asynchronously writes data.
+         *
+         * @param bytes A constant reference to a `std::vector<unsigned char>` containing the data to be written.
+         *
+         * @throws Tcp::OperationException If an error occurs during the read operation (e.g., network failure,
+         * timeout, or invalid data format), the exception will be thrown and should be handled
+         * by the caller.
+         */
         boost::asio::awaitable<void> write_async(const std::vector<unsigned char>& bytes);
 
+        /**
+         * @brief Retrieves the underlying TCP socket.
+         *
+         * @return boost::asio::ip::tcp::socket& A reference to the `boost::asio::ip::tcp::socket`.
+         */
         boost::asio::ip::tcp::socket& get() noexcept
         {
             return _socket;
         }
 
+        /**
+         * @brief Retrieves the executor associated with the socket.
+         *
+         * @return const boost::asio::basic_socket<boost::asio::ip::tcp>::executor_type& A reference
+         * to the executor associated with the socket.
+         */
         const boost::asio::basic_socket<boost::asio::ip::tcp>::executor_type& get_executor() noexcept
         {
             return _socket.get_executor();

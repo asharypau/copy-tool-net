@@ -24,6 +24,12 @@ namespace Tcp
         Writer(Writer&&) = delete;
         Writer& operator=(Writer&&) = delete;
 
+        /**
+         * @brief Asynchronously writes data.
+         *
+         * @tparam TModel The type of the model that contains the data to be written asynchronously.
+         * @param model A reference to the model whose data will be written.
+         */
         template <class TModel>
         boost::asio::awaitable<void> write_async(TModel& model)
         {

@@ -20,9 +20,11 @@ namespace Server
 
         /**
          * @brief Runs a new session.
+         * @tparam TCompletionCallback The type of the completion callback function.
+         * @param completion_callback The callback to be executed upon completion of the operation.
          */
-        template <class TCallback>
-        boost::asio::awaitable<void> run(TCallback callback)
+        template <class TCompletionCallback>
+        boost::asio::awaitable<void> run(TCompletionCallback completion_callback)
         {
             Logger::info(std::format("Session run for the client {}", _client_id));
 
@@ -31,12 +33,25 @@ namespace Server
                 co_await run_request_processing_loop();
             }
 
-            callback(_client_id);
+            completion_callback(_client_id);
         }
 
     private:
+        /**
+         * @brief Performs an asynchronous server handshake.
+         *
+         * @return boost::asio::awaitable<bool> `true` if the handshake is successful, `false` if an error occurs.
+         */
         boost::asio::awaitable<bool> handshake();
+
+        /**
+         * @brief Runs the request processing loop asynchronously.
+         */
         boost::asio::awaitable<void> run_request_processing_loop();
+
+        /**
+         * @brief Closes the socket.
+         */
         void stop();
 
         Tcp::Socket _socket;

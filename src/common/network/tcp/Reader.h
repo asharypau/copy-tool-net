@@ -28,6 +28,14 @@ namespace Tcp
         Reader(Reader&&) = delete;
         Reader& operator=(Reader&&) = delete;
 
+        /**
+         * @brief Asynchronously reads data.
+         *
+         * @tparam TModel The type of the model to read.
+         *
+         * @return boost::asio::awaitable<std::tuple<TModel, std::size_t>> An awaitable coroutine
+         * that returns a tuple with the model and the size of the data read.
+         */
         template <class TModel>
         boost::asio::awaitable<std::tuple<TModel, std::size_t>> read_async()
         {

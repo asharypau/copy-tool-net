@@ -1,6 +1,8 @@
 #ifndef TCP_CONSTANTS_H
 #define TCP_CONSTANTS_H
 
+#include <cstddef>
+
 namespace Tcp
 {
     using header_t = std::size_t;
