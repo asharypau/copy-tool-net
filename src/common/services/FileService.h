@@ -12,8 +12,8 @@ public:
     void open_create(const std::string& path);
     void open_read(const std::string& path);
     void close();
-    void write(const char* data, size_t size);
-    size_t read(char* date, size_t size);
+    void write(const char* data, std::size_t size);
+    std::size_t read(char* date, std::size_t size);
 
 private:
     std::string get_version(const std::string& path);

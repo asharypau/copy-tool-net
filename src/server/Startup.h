@@ -30,7 +30,7 @@ namespace Server
         boost::asio::io_context _context;
         Tcp::Acceptor _acceptor;
         SessionManager _session_manager;
-        size_t _client_id;
+        std::size_t _client_id;
     };
 }
 

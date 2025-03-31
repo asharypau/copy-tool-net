@@ -2,12 +2,13 @@
 
 #include <exception>
 #include <format>
+#include <string>
 
 #include "../common/network/tcp/OperationException.h"
 
 using namespace Server;
 
-Session::Session(const size_t client_id, Tcp::Socket socket)
+Session::Session(const std::size_t client_id, Tcp::Socket socket)
     : _socket(std::move(socket)),
       _tcp_reader(_socket),
       _tcp_writer(_socket),
@@ -62,7 +63,6 @@ boost::asio::awaitable<void> Session::run_request_processing_loop()
         catch (const std::exception& ex)
         {
             Logger::error(std::format("An error occurred during the session run: {} for the client {}", ex.what(), _client_id));
-
             stop();
         }
     }

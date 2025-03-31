@@ -16,7 +16,7 @@ FileClient::FileClient(Tcp::Socket& socket)
 
 boost::asio::awaitable<void> FileClient::write(const Message& message)
 {
-    size_t batches_count = (message.size + BATCH_SIZE - 1) / BATCH_SIZE;
+    std::size_t batches_count = (message.size + BATCH_SIZE - 1) / BATCH_SIZE;
 
     RequestMetadata request_metadata;
     request_metadata.endpoint = Endpoints::FILE;
@@ -45,7 +45,7 @@ boost::asio::awaitable<void> FileClient::write_headers(const Message& message)
 
 boost::asio::awaitable<void> FileClient::write_file(const Message& message)
 {
-    size_t remaining_bytes_to_read = message.size;
+    std::size_t remaining_bytes_to_read = message.size;
     _file_service.open_read(message.path);
 
     while (remaining_bytes_to_read != 0)

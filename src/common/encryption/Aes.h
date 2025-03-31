@@ -13,7 +13,7 @@ namespace Encryption
     class Aes
     {
     public:
-        static Encryption::symmetric_key_t generate_key(size_t size);
+        static Encryption::symmetric_key_t generate_key(std::size_t size);
         static std::vector<unsigned char> encrypt(const Encryption::symmetric_key_t& key, const std::vector<unsigned char>& data);
         static std::vector<unsigned char> decrypt(const Encryption::symmetric_key_t& key, const std::vector<unsigned char>& encrypted_data);
     };

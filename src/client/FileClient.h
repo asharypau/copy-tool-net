@@ -9,7 +9,6 @@
 #include "../common/network/tcp/Writer.h"
 #include "../common/services/FileService.h"
 
-
 namespace Client
 {
     class FileClient
@@ -59,7 +58,7 @@ namespace Client
          */
         boost::asio::awaitable<void> write_file(const Message& message);
 
-        static constexpr size_t BATCH_SIZE = 1024 * 1024;
+        static constexpr std::size_t BATCH_SIZE = 1024 * 1024;
 
         Tcp::Writer _tcp_writer;
         Tcp::Reader _tcp_reader;

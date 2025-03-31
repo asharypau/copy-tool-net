@@ -41,7 +41,7 @@ void FileService::close()
     }
 }
 
-void FileService::write(const char* data, size_t size)
+void FileService::write(const char* data, std::size_t size)
 {
     _file.write(data, size);
 
@@ -51,7 +51,7 @@ void FileService::write(const char* data, size_t size)
     }
 }
 
-size_t FileService::read(char* data, size_t size)
+std::size_t FileService::read(char* data, std::size_t size)
 {
     _file.read(data, size);
 

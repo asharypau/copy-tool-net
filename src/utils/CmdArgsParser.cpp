@@ -6,7 +6,7 @@ CmdArgs CmdArgsParser::parse(int argc, char* argv[])
 {
     CmdArgs cmd_args;
 
-    for (size_t i = 1; i < argc; i++)
+    for (std::size_t i = 1; i < argc; i++)
     {
         if (cmd_args.port == 0 && exists(argv[i], port_tokens))
         {

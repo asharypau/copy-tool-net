@@ -60,7 +60,7 @@ std::vector<Message> MessagesPrompt::internal_get() const
 
     while (ss >> message)
     {
-        size_t delimiter_pos = message.find(':');
+        std::size_t delimiter_pos = message.find(':');
         if (delimiter_pos == std::string::npos)
         {
             std::cout << Colors::RED << "Incorrect format: " << Colors::RESET << message << std::endl;

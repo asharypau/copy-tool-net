@@ -12,7 +12,7 @@ SessionManager::SessionManager(boost::asio::io_context& context)
 {
 }
 
-void SessionManager::start_new(const size_t client_id, Tcp::Socket socket)
+void SessionManager::start_new(const std::size_t client_id, Tcp::Socket socket)
 {
     if (!_sessions.contains(client_id))
     {
@@ -20,7 +20,7 @@ void SessionManager::start_new(const size_t client_id, Tcp::Socket socket)
         boost::asio::co_spawn(
             _context,
             _sessions[client_id]->run(
-                [this](const size_t id)
+                [this](const std::size_t id)
                 {
                     end_session(id);
                 }),
@@ -32,7 +32,7 @@ void SessionManager::start_new(const size_t client_id, Tcp::Socket socket)
     }
 }
 
-void SessionManager::end_session(const size_t client_id)
+void SessionManager::end_session(const std::size_t client_id)
 {
     if (_sessions.empty())
     {
@@ -40,7 +40,7 @@ void SessionManager::end_session(const size_t client_id)
         return;
     }
 
-    const std::unordered_map<size_t, std::unique_ptr<Session>>::iterator& it = _sessions.find(client_id);
+    const std::unordered_map<std::size_t, std::unique_ptr<Session>>::iterator& it = _sessions.find(client_id);
     if (it != _sessions.end())
     {
         _sessions.erase(client_id);

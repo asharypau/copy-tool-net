@@ -24,11 +24,11 @@ public:
 
 private:
     template <std::size_t Size>
-    size_t exists(const std::string_view arg, const std::array<std::string, Size>& tokens) const noexcept
+    std::size_t exists(const std::string_view arg, const std::array<std::string, Size>& tokens) const noexcept
     {
         bool exists = false;
 
-        for (size_t i = 0; i < tokens.size(); i++)
+        for (std::size_t i = 0; i < tokens.size(); i++)
         {
             if (arg.find(tokens[i]) != std::string::npos)
             {

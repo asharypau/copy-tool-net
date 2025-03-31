@@ -2,7 +2,7 @@
 
 using namespace Encryption;
 
-Encryption::symmetric_key_t Aes::generate_key(size_t size)
+Encryption::symmetric_key_t Aes::generate_key(std::size_t size)
 {
     Encryption::symmetric_key_t key(size);
 

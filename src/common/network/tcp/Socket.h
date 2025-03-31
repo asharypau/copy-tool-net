@@ -46,8 +46,8 @@ namespace Tcp
         boost::asio::awaitable<void> client_handshake();
 
         boost::asio::awaitable<Tcp::header_t> read_header_async();
-        std::vector<unsigned char> read_data(size_t content_length);
-        std::vector<unsigned char> extract_from_read_buffer(size_t content_length);
+        std::vector<unsigned char> read_data(std::size_t content_length);
+        std::vector<unsigned char> extract_from_read_buffer(std::size_t content_length);
 
         std::vector<unsigned char> get_write_buffer(const std::vector<unsigned char>& data) const;
 

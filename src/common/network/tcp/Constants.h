@@ -3,9 +3,9 @@
 
 namespace Tcp
 {
-    using header_t = size_t;
+    using header_t = std::size_t;
 
-    static constexpr size_t HEADER_SIZE = sizeof(header_t);
+    static constexpr std::size_t HEADER_SIZE = sizeof(header_t);
 
     enum HandshakeType
     {

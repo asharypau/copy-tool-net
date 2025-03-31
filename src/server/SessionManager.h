@@ -13,13 +13,13 @@ namespace Server
     public:
         explicit SessionManager(boost::asio::io_context& context);
 
-        void start_new(const size_t client_id, Tcp::Socket socket);
+        void start_new(const std::size_t client_id, Tcp::Socket socket);
 
     private:
-        void end_session(const size_t client_id);
+        void end_session(const std::size_t client_id);
 
         boost::asio::io_context& _context;
-        std::unordered_map<size_t, std::unique_ptr<Session>> _sessions;
+        std::unordered_map<std::size_t, std::unique_ptr<Session>> _sessions;
     };
 }
 

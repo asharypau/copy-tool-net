@@ -42,12 +42,9 @@ void Startup::run()
 boost::asio::awaitable<void> Startup::connect()
 {
     Tcp::OperationResult<bool> op_result = co_await Tcp::Connector::connect(_port, _host, _socket);
-    if (op_result)
+    if (op_result && co_await handshake())
     {
-        if (co_await handshake())
-        {
-            run_user_thread();
-        }
+        run_user_thread();
     }
     else
     {

@@ -101,9 +101,9 @@ boost::asio::awaitable<void> Socket::handshake(Tcp::HandshakeType type)
 boost::asio::awaitable<std::vector<unsigned char>> Socket::read_async()
 {
     Tcp::header_t content_length = co_await read_header_async();
-    std::vector<unsigned char> decrypted_bytes = read_data(content_length);
+    std::vector<unsigned char> data = read_data(content_length);
 
-    co_return std::move(decrypted_bytes);
+    co_return std::move(data);
 }
 
 boost::asio::awaitable<void> Socket::write_async(const std::vector<unsigned char>& bytes)
@@ -134,8 +134,8 @@ boost::asio::awaitable<void> Socket::client_handshake()
 {
     std::vector<unsigned char> data = co_await read_async();
     Encryption::asymmetric_key_t public_asymmetric_key = Encryption::Rsa::to_public_key(std::string(data.begin(), data.end()));
-    _symmetric_key = Encryption::Aes::generate_key(32);
 
+    _symmetric_key = Encryption::Aes::generate_key(32);
     std::vector<unsigned char> encrypted_symmetric_key = Encryption::Rsa::encrypt(public_asymmetric_key, _symmetric_key);
     co_await write_async(encrypted_symmetric_key);
 }
@@ -163,7 +163,7 @@ boost::asio::awaitable<Tcp::header_t> Socket::read_header_async()
     co_return header;
 }
 
-std::vector<unsigned char> Socket::read_data(size_t content_length)
+std::vector<unsigned char> Socket::read_data(std::size_t content_length)
 {
     boost::system::error_code error;
     boost::asio::read(_socket, _read_buffer.prepare(content_length), boost::asio::transfer_exactly(content_length), error);
@@ -181,7 +181,7 @@ std::vector<unsigned char> Socket::read_data(size_t content_length)
                : std::move(extracted_bytes);
 }
 
-std::vector<unsigned char> Socket::extract_from_read_buffer(size_t content_length)
+std::vector<unsigned char> Socket::extract_from_read_buffer(std::size_t content_length)
 {
     std::vector<unsigned char> extracted_bytes(content_length);
     unsigned char* begin = static_cast<unsigned char*>(_read_buffer.data().data());

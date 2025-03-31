@@ -19,7 +19,7 @@ namespace Server
             _file_service.open_create(std::format("{}{}", _absolute_path, name));
         }
 
-        void write(const char* data, size_t size)
+        void write(const char* data, std::size_t size)
         {
             _file_service.write(data, size);
         }

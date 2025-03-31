@@ -4,7 +4,7 @@
 
 using namespace Encryption;
 
-asymmetric_key_t Rsa::generate_key(size_t size)
+asymmetric_key_t Rsa::generate_key(std::size_t size)
 {
     EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, nullptr);
     if (!ctx)
@@ -125,7 +125,7 @@ std::vector<unsigned char> Rsa::encrypt(asymmetric_key_t key, const std::vector<
     }
 
     std::vector<unsigned char> encrypted_data(EVP_PKEY_size(key.get()));
-    size_t encrypted_data_length = encrypted_data.size();
+    std::size_t encrypted_data_length = encrypted_data.size();
 
     if (EVP_PKEY_encrypt(ctx, encrypted_data.data(), &encrypted_data_length, data.data(), data.size()) <= 0)
     {
@@ -169,7 +169,7 @@ std::vector<unsigned char> Rsa::decrypt(asymmetric_key_t key, const std::vector<
     }
 
     std::vector<unsigned char> decrypted_data(EVP_PKEY_size(key.get()));
-    size_t decrypted_data_length = decrypted_data.size();
+    std::size_t decrypted_data_length = decrypted_data.size();
 
     if (EVP_PKEY_decrypt(ctx, decrypted_data.data(), &decrypted_data_length, encrypted_data.data(), encrypted_data.size()) <= 0)
     {

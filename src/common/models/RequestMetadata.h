@@ -13,7 +13,7 @@ class RequestMetadata : public Tcp::ISerializable
 public:
     std::vector<unsigned char> serialize() override
     {
-        size_t offset = 0;
+        std::size_t offset = 0;
         std::vector<unsigned char> buffer(Tcp::HEADER_SIZE * 2 + endpoint.size());
 
         // size

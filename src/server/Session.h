@@ -16,7 +16,7 @@ namespace Server
     class Session
     {
     public:
-        Session(const size_t client_id, Tcp::Socket socket);
+        Session(const std::size_t client_id, Tcp::Socket socket);
 
         /**
          * @brief Runs a new session.
@@ -44,7 +44,7 @@ namespace Server
         Tcp::Writer _tcp_writer;
         FileStorage _file_storage;
         Dispatcher _dispatcher;
-        const size_t _client_id;
+        const std::size_t _client_id;
     };
 }
 

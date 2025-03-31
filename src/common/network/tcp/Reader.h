@@ -29,7 +29,7 @@ namespace Tcp
         Reader& operator=(Reader&&) = delete;
 
         template <class TModel>
-        boost::asio::awaitable<std::tuple<TModel, size_t>> read_async()
+        boost::asio::awaitable<std::tuple<TModel, std::size_t>> read_async()
         {
             std::vector<unsigned char> bytes = co_await _socket.read_async();
             TModel model;
@@ -43,7 +43,7 @@ namespace Tcp
                 std::memcpy(&model, bytes.data(), bytes.size());
             }
 
-            std::tuple<TModel, size_t> response = std::make_tuple(std::move(model), bytes.size());
+            std::tuple<TModel, std::size_t> response = std::make_tuple(std::move(model), bytes.size());
 
             co_return std::move(response);
         }
