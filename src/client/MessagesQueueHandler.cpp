@@ -113,7 +113,7 @@ boost::asio::awaitable<void> MessagesQueueHandler::read_confirmation()
         }
         catch (const Tcp::OperationException& ex)
         {
-            Logger::error(std::format("An error occurred during writing the message {}: {}", ex.error_code(), ex.what()));
+            Logger::error(std::format("An error occurred during reading the message {}: {}", ex.error_code(), ex.what()));
 
             if (ex.error_code() == boost::asio::error::eof || ex.error_code() == boost::asio::error::connection_reset)
             {
@@ -122,7 +122,7 @@ boost::asio::awaitable<void> MessagesQueueHandler::read_confirmation()
         }
         catch (const std::exception& ex)
         {
-            Logger::error(std::format("An error occurred during writing the message: {}", ex.what()));
+            Logger::error(std::format("An error occurred during reading the message: {}", ex.what()));
             stop = true;
         }
     }

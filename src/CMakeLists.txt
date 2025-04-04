@@ -25,4 +25,9 @@ target_link_libraries(
     Client
 )
 
-target_include_directories(CopyToolNet PRIVATE Server Client)
+target_include_directories(
+    CopyToolNet PRIVATE
+    ${Boost_INCLUDE_DIRS}
+    Server
+    Client
+)

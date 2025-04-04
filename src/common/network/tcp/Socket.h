@@ -17,12 +17,14 @@ namespace Tcp
         explicit Socket(boost::asio::io_context& context);
         Socket(boost::asio::ip::tcp::socket socket);
         Socket(Socket&& other);
-        Socket(const Socket&) = delete;  // Disallow copying
         ~Socket();
 
         Socket& operator=(Socket&& other);
         operator boost::asio::ip::tcp::socket&() noexcept;
-        Socket& operator=(const Socket&) = delete;  // Disallow copy assignment
+
+        // Disallow copying and assignment.
+        Socket(const Socket&) = delete;
+        Socket& operator=(const Socket&) = delete;
 
         /**
          * @brief Checks if the socket is open.

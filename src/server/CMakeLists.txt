@@ -6,6 +6,7 @@ add_library(
     Dispatcher.cpp
     controllers/FileController.cpp
     services/FileStorage.cpp
+    services/WorkersPool.cpp
 )
 
 target_link_libraries(

@@ -12,7 +12,7 @@ SessionManager::SessionManager(boost::asio::io_context& context)
 {
 }
 
-void SessionManager::start_new(const std::size_t client_id, Tcp::Socket socket)
+void SessionManager::run_new(const std::size_t client_id, Tcp::Socket socket)
 {
     if (!_sessions.contains(client_id))
     {

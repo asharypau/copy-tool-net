@@ -21,7 +21,12 @@ namespace Server
          * @param client_id The unique identifier of the client.
          * @param socket The TCP socket associated with the client.
          */
-        void start_new(const std::size_t client_id, Tcp::Socket socket);
+        void run_new(const std::size_t client_id, Tcp::Socket socket);
+
+        std::size_t get_count() const noexcept
+        {
+            return _sessions.size();
+        }
 
     private:
         /**

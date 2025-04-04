@@ -9,6 +9,7 @@ using namespace Server;
 
 Startup::Startup(unsigned short port)
     : _context(),
+      _workers_pool(_context),
       _acceptor(port, _context),
       _session_manager(_context),
       _client_id(0)
@@ -42,7 +43,9 @@ boost::asio::awaitable<void> Startup::accept()
         if (op_result)
         {
             Logger::info(std::format("The client {} is accepted", _client_id));
-            _session_manager.start_new(_client_id, std::move(op_result.acquire_result()));
+
+            _session_manager.run_new(_client_id, std::move(op_result.acquire_result()));
+            _workers_pool.resize(_session_manager.get_count());
         }
         else
         {

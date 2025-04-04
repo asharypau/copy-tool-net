@@ -7,6 +7,7 @@
 #include "../common/network/tcp/Acceptor.h"
 #include "../infrastructure/IApplication.h"
 #include "SessionManager.h"
+#include "services/WorkersPool.h"
 
 namespace Server
 {
@@ -28,6 +29,7 @@ namespace Server
         boost::asio::awaitable<void> accept();
 
         boost::asio::io_context _context;
+        WorkersPool _workers_pool;
         Tcp::Acceptor _acceptor;
         SessionManager _session_manager;
         std::size_t _client_id;
