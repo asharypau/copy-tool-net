@@ -3,11 +3,11 @@
 
 #include <boost/asio.hpp>
 
-#include "../common/models/Message.h"
 #include "../common/network/tcp/Reader.h"
 #include "../common/network/tcp/Socket.h"
 #include "../common/network/tcp/Writer.h"
 #include "../common/services/FileService.h"
+#include "../models/Message.h"
 
 namespace Client
 {

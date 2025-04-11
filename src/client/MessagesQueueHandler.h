@@ -6,8 +6,8 @@
 #include <queue>
 #include <vector>
 
-#include "../common/models/Message.h"
 #include "../common/network/tcp/Socket.h"
+#include "../models/Message.h"
 #include "FileClient.h"
 
 namespace Client

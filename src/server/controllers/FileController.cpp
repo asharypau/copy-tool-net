@@ -1,6 +1,6 @@
 #include "FileController.h"
 
-#include "../common/models/FileRequest.h"
+#include "../models/FileRequest.h"
 
 using namespace Server;
 

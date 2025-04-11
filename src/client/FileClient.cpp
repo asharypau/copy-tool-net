@@ -1,9 +1,9 @@
 #include "FileClient.h"
 
-#include "../common/models/FileHeaders.h"
-#include "../common/models/FileRequest.h"
-#include "../common/models/RequestMetadata.h"
 #include "../common/network/Endpoints.h"
+#include "../models/FileHeaders.h"
+#include "../models/FileRequest.h"
+#include "../models/RequestMetadata.h"
 
 using namespace Client;
 

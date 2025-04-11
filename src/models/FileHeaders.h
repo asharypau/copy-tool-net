@@ -5,7 +5,7 @@
 #include <string>
 
 #include "../common/network/tcp/Constants.h"
-#include "../network/tcp/ISerializable.h"
+#include "../common/network/tcp/ISerializable.h"
 
 class FileHeaders : public Tcp::ISerializable<FileHeaders>
 {

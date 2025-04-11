@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../common/network/tcp/Constants.h"
-#include "../network/tcp/ISerializable.h"
+#include "../common/network/tcp/ISerializable.h"
 
 class FileRequest : public Tcp::ISerializable<FileRequest>
 {

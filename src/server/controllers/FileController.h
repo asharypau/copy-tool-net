@@ -1,9 +1,9 @@
 #ifndef FILE_CONTROLLER_H
 #define FILE_CONTROLLER_H
 
-#include "../common/models/FileHeaders.h"
 #include "../common/network/tcp/Reader.h"
 #include "../common/network/tcp/Writer.h"
+#include "../models/FileHeaders.h"
 #include "controllers/IController.h"
 #include "services/FileStorage.h"
 
