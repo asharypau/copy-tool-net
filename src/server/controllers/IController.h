@@ -10,6 +10,8 @@ namespace Server
     class IController
     {
     public:
+        virtual ~IController() = default;
+
         /**
          * @brief Handles an incoming request by initializing the read operation.
          *
@@ -17,8 +19,6 @@ namespace Server
          * @param session A shared pointer to the session handling the request.
          */
         virtual boost::asio::awaitable<void> handle(Tcp::header_t request_size) = 0;
-
-        virtual ~IController() = default;
     };
 
 }

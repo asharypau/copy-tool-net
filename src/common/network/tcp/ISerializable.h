@@ -5,13 +5,25 @@
 
 namespace Tcp
 {
+    template <class Serializable>
     class ISerializable
     {
     public:
-        virtual ~ISerializable() = default;
+        std::vector<unsigned char> serialize()
+        {
+            return std::move(get_impl()->serialize_impl());
+        }
 
-        virtual std::vector<unsigned char> serialize() = 0;
-        virtual void deserialize(const std::vector<unsigned char>& bytes) = 0;
+        void deserialize(const std::vector<unsigned char>& bytes)
+        {
+            get_impl()->deserialize_impl(bytes);
+        }
+
+    private:
+        Serializable* get_impl()
+        {
+            return static_cast<Serializable*>(this);
+        }
     };
 }
 

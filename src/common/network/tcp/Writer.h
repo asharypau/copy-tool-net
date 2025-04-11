@@ -33,7 +33,7 @@ namespace Tcp
         template <class TModel>
         boost::asio::awaitable<void> write_async(TModel& model)
         {
-            if constexpr (std::is_base_of_v<ISerializable, TModel>)
+            if constexpr (std::is_base_of_v<ISerializable<TModel>, TModel>)
             {
                 std::vector<unsigned char> bytes = model.serialize();
                 co_await _socket.write_async(bytes);

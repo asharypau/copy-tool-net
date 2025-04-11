@@ -7,10 +7,16 @@
 #include "../common/network/tcp/Constants.h"
 #include "../network/tcp/ISerializable.h"
 
-class FileHeaders : public Tcp::ISerializable
+class FileHeaders : public Tcp::ISerializable<FileHeaders>
 {
 public:
-    std::vector<unsigned char> serialize() override
+    Tcp::header_t confirmation_id = 0;
+    std::string name;
+
+private:
+    friend class Tcp::ISerializable<FileHeaders>;
+
+    std::vector<unsigned char> serialize()
     {
         std::size_t offset = 0;
         std::vector<unsigned char> buffer(Tcp::HEADER_SIZE * 2 + name.size());
@@ -31,7 +37,7 @@ public:
         return std::move(buffer);
     }
 
-    void deserialize(const std::vector<unsigned char>& bytes) override
+    void deserialize_impl(const std::vector<unsigned char>& bytes)
     {
         Tcp::header_t offset = 0;
         const unsigned char* begin = bytes.data();
@@ -49,9 +55,6 @@ public:
         name = std::string(begin + offset, begin + offset + name_size);
         offset += name_size;
     }
-
-    Tcp::header_t confirmation_id = 0;
-    std::string name;
 };
 
 #endif  // FILE_HEADER_H

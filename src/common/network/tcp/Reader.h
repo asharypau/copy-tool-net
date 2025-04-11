@@ -42,7 +42,7 @@ namespace Tcp
             std::vector<unsigned char> bytes = co_await _socket.read_async();
             TModel model;
 
-            if constexpr (std::is_base_of_v<Tcp::ISerializable, TModel>)
+            if constexpr (std::is_base_of_v<Tcp::ISerializable<TModel>, TModel>)
             {
                 model.deserialize(bytes);
             }

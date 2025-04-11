@@ -4,12 +4,12 @@
 class IApplication
 {
 public:
+    virtual ~IApplication() = default;
+
     /**
      * @brief Runs the application.
      */
     virtual void run() = 0;
-
-    virtual ~IApplication() = default;
 };
 
 #endif  // IAPPLICATION_H

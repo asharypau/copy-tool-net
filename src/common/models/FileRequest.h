@@ -6,10 +6,16 @@
 #include "../common/network/tcp/Constants.h"
 #include "../network/tcp/ISerializable.h"
 
-class FileRequest : public Tcp::ISerializable
+class FileRequest : public Tcp::ISerializable<FileRequest>
 {
 public:
-    std::vector<unsigned char> serialize() override
+    Tcp::header_t batch_size = 0;
+    std::vector<char> batch;
+
+private:
+    friend class Tcp::ISerializable<FileRequest>;
+
+    std::vector<unsigned char> serialize_impl()
     {
         std::size_t offset = 0;
         std::vector<unsigned char> buffer(Tcp::HEADER_SIZE + batch_size);
@@ -25,7 +31,7 @@ public:
         return std::move(buffer);
     }
 
-    void deserialize(const std::vector<unsigned char>& bytes) override
+    void deserialize_impl(const std::vector<unsigned char>& bytes)
     {
         Tcp::header_t offset = 0;
         const unsigned char* begin = bytes.data();
@@ -39,9 +45,6 @@ public:
         std::memcpy(batch.data(), begin + offset, batch_size);
         offset += batch_size;
     }
-
-    Tcp::header_t batch_size = 0;
-    std::vector<char> batch;
 };
 
 #endif  // FILE_REQUEST_H
