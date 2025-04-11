@@ -16,7 +16,7 @@ public:
 private:
     friend class Tcp::ISerializable<FileHeaders>;
 
-    std::vector<unsigned char> serialize()
+    std::vector<unsigned char> serialize_impl()
     {
         std::size_t offset = 0;
         std::vector<unsigned char> buffer(Tcp::HEADER_SIZE * 2 + name.size());
