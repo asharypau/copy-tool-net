@@ -11,11 +11,13 @@ add_library(
 
 target_link_libraries(
     Server PRIVATE
+    Common
     Boost::system
     Boost::asio
-    Boost::beast
-    OpenSSL::Crypto
-    OpenSSL::SSL
 )
 
-target_include_directories(Server PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(
+    Server PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${Boost_INCLUDE_DIRS}
+)

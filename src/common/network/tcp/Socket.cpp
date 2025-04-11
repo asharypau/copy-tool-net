@@ -3,7 +3,6 @@
 #include <string>
 #include <utility>
 
-#include "../../../utils/Logger.h"
 #include "../common/encryption/Aes.h"
 #include "../common/encryption/Rsa.h"
 #include "OperationException.h"
@@ -101,7 +100,6 @@ boost::asio::awaitable<void> Socket::handshake(Tcp::HandshakeType type)
 
 boost::asio::awaitable<std::vector<unsigned char>> Socket::read_async()
 {
-    Logger::info(std::format("Thread id in read_async: {}", std::this_thread::get_id()));
     Tcp::header_t content_length = co_await read_header_async();
     std::vector<unsigned char> data = read_data(content_length);
 
