@@ -2,6 +2,7 @@
 #define SERVER_WORKERS_POOL
 
 #include <boost/asio.hpp>
+#include <memory>
 #include <optional>
 #include <thread>
 #include <vector>
@@ -15,14 +16,15 @@ namespace Server
         {
         public:
             Worker();
-            Worker(Worker&& other);
             ~Worker();
-
-            Worker& operator=(Worker&& other);
 
             // Disallow copying and assignment.
             Worker(const Worker&) = delete;
             Worker& operator=(const Worker&) = delete;
+
+            // Disallow movement and assignment.
+            Worker(Worker&& other) = delete;
+            Worker& operator=(Worker&& other) = delete;
 
             bool is_active() const noexcept
             {
@@ -62,7 +64,8 @@ namespace Server
         static const unsigned int sessions_per_worker = 2;
 
         unsigned int _max_concurrency;
-        std::vector<Worker> _workers;
+        std::chrono::milliseconds _timeout;
+        std::vector<std::unique_ptr<Worker>> _workers;
         boost::asio::io_context& _context;
     };
 }
