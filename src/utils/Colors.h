@@ -10,6 +10,7 @@ namespace Colors
     static constexpr std::string_view GREEN = "\033[32m";
     static constexpr std::string_view YELLOW = "\033[33m";
     static constexpr std::string_view WHITE = "\033[37m";
+    static constexpr std::string_view BRIGHT_BLUE = "\033[94m";
 }
 
 #endif  // COLORS_H
