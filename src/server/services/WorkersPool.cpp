@@ -4,64 +4,142 @@
 
 using namespace Server;
 
-WorkersPool::Worker::Worker()
-    : _is_active(false),
-      _worker()
-{
-}
-
-WorkersPool::Worker::~Worker()
-{
-    if (_worker && _worker->joinable())
-    {
-        _worker->join();
-    }
-}
-
 WorkersPool::WorkersPool(boost::asio::io_context& context)
-    : _max_concurrency(std::thread::hardware_concurrency()),
+    : _mtx(),
+      _cv(),
       _timeout(5000),
-      _workers(),
+      _max_pool_size(std::thread::hardware_concurrency() - 2),  // - 2 (the main + _manager)
+      _curr_pool_size(0),
+      _pool(),
+      _manager(&WorkersPool::manage, this),
+      _manager_tasks(),
       _context(context)
 {
 }
 
-void WorkersPool::resize(std::size_t sessions_count)
+WorkersPool::~WorkersPool()
 {
-    if (!_workers.empty())
+    ManagerTask manager_task;
+    manager_task.required_pool_size = 0;
+    manager_task.stop_signal = true;
+    manager_task.clear_signal = true;
+
     {
-        std::erase_if(
-            _workers,
-            [](const std::unique_ptr<Worker>& worker)
-            {
-                return !worker->is_active();
-            });
+        std::unique_lock<std::mutex> lock(_mtx);
+        _manager_tasks.push(manager_task);
     }
 
-    std::size_t actual_workers_count = _workers.size() + 1;                                                 // + 1 (the main worker)
-    std::size_t required_workers_count = (sessions_count + sessions_per_worker - 1) / sessions_per_worker;  // (a + b - 1) / b (so that the result is rounded up)
+    _cv.notify_one();
 
-    if (actual_workers_count == required_workers_count)
+    if (_manager.joinable())
+    {
+        _manager.join();
+    }
+}
+
+void WorkersPool::resize(const std::size_t sessions_count)
+{
+    std::size_t required_pool_size = get_required_pool_size(sessions_count);
+    std::size_t curr_pool_size = 0;
+    {
+        std::unique_lock<std::mutex> lock(_mtx);
+        curr_pool_size = _curr_pool_size;  // make a copy to avoid data race
+    }
+
+    if (curr_pool_size == required_pool_size)
     {
         return;
     }
 
-    if (actual_workers_count > required_workers_count)
+    ManagerTask manager_task;
+    manager_task.required_pool_size = required_pool_size;
+
+    if (curr_pool_size > required_pool_size)
     {
-        size_t deactivation_index = _workers.size() - 1;
-        for (size_t extra_workers = actual_workers_count - required_workers_count; extra_workers > 0; --extra_workers)
-        {
-            _workers[deactivation_index]->deactivate();
-            --deactivation_index;
-        }
+        manager_task.clear_signal = true;
+
+        std::unique_lock<std::mutex> lock(_mtx);
+        _manager_tasks.push(manager_task);
     }
-    else if (actual_workers_count < _max_concurrency && actual_workers_count < required_workers_count)
+    else if (curr_pool_size < required_pool_size)
     {
-        _workers.emplace_back(std::make_unique<Worker>());
-        _workers.back()->activate(
-            [this]
+        manager_task.extend_signal = true;
+
+        std::unique_lock<std::mutex> lock(_mtx);
+        _manager_tasks.push(manager_task);
+    }
+
+    _cv.notify_one();
+}
+
+std::size_t Server::WorkersPool::get_required_pool_size(const std::size_t sessions_count)
+{
+    std::size_t required_workers_size = (sessions_count + sessions_per_worker - 1) / sessions_per_worker;  // (a + b - 1) / b (so that the result is rounded up)
+
+    if (required_workers_size <= 1)  // 1 (the main)
+    {
+        return 0;
+    }
+
+    return required_workers_size - 1;  // - 1 (the main)
+}
+
+void WorkersPool::manage()
+{
+    while (true)
+    {
+        std::optional<ManagerTask> manager_task;
+        {
+            std::unique_lock<std::mutex> lock(_mtx);
+
+            if (_manager_tasks.empty())
             {
-                _context.run_one_for(_timeout);
-            });
+                _cv.wait(
+                    lock,
+                    [this]
+                    {
+                        return !_manager_tasks.empty();
+                    });
+            }
+
+            manager_task.emplace(_manager_tasks.front());
+        }
+
+        if (manager_task->clear_signal)
+        {
+            for (size_t extra_workers = _pool.size() - manager_task->required_pool_size; extra_workers > 0; --extra_workers)
+            {
+                _pool.back()->deactivate();
+                _pool.pop_back();
+            }
+        }
+        else if (manager_task->extend_signal && _pool.size() < _max_pool_size)
+        {
+            for (size_t extra_workers = manager_task->required_pool_size - _pool.size(); extra_workers > 0; --extra_workers)
+            {
+                std::unique_ptr<Worker> worker = std::make_unique<Worker>(
+                    [this]
+                    {
+                        _context.run_one_for(_timeout);
+                    });
+                _pool.emplace_back(std::move(worker));
+
+                if (_pool.size() == _max_pool_size)
+                {
+                    break;
+                }
+            }
+        }
+
+        {
+            std::unique_lock<std::mutex> lock(_mtx);
+            _curr_pool_size = _pool.size();
+            _manager_tasks.pop();
+        }
+
+        if (manager_task->stop_signal)
+        {
+            break;
+        }
     }
 }
