@@ -107,11 +107,19 @@ void WorkersPool::manage()
 
         if (manager_task->clear_signal)
         {
+            std::size_t deactivation_index = _pool.size() - 1;
             for (size_t extra_workers = _pool.size() - manager_task->required_pool_size; extra_workers > 0; --extra_workers)
             {
-                _pool.back()->deactivate();
-                _pool.pop_back();
+                _pool[deactivation_index]->deactivate();
+                --deactivation_index;
             }
+
+            std::erase_if(
+                _pool,
+                [](const std::unique_ptr<Worker>& worker)
+                {
+                    return !worker->is_active();
+                });
         }
         else if (manager_task->extend_signal && _pool.size() < _max_pool_size)
         {
