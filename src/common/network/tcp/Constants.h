@@ -1,0 +1,20 @@
+#ifndef TCP_CONSTANTS_H
+#define TCP_CONSTANTS_H
+
+#include <cstddef>
+
+namespace Tcp
+{
+    using header_t = std::size_t;
+
+    static constexpr std::size_t HEADER_SIZE = sizeof(header_t);
+
+    enum HandshakeType
+    {
+        UNKNOWN = 0,
+        SERVER = 1,
+        CLIENT = 2
+    };
+}
+
+#endif  // TCP_CONSTANTS_H
